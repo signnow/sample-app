@@ -1,0 +1,55 @@
+.btn.btn-primary {
+    --bs-btn-bg: #0777cf;
+    --bs-btn-border-color: #0777cf;
+    --bs-btn-hover-bg: #348fd7;
+    --bs-btn-hover-border-color: #348fd7;
+    --bs-btn-active-bg: #076dbd;
+    --bs-btn-active-border-color: #076dbd;
+    font-weight: 600;
+}
+
+.btn.btn-primary:disabled {
+    --bs-btn-disabled-bg: #bbd9f1;
+    --bs-btn-disabled-border-color: #bbd9f1;
+    --bs-btn-disabled-opacity: 1;
+    cursor: not-allowed;
+}
+
+.btn.btn-primary:active, .btn.btn-primary:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #667988;
+}
+
+.text-secondary {
+    --bs-secondary-rgb: 84,100,112;
+}
+
+.fs-5-1 {
+    font-size: 1.125rem;
+}
+
+.fs-7 {
+    font-size: 0.875rem;
+}
+
+.mb-6 {
+    margin-bottom: 6rem;
+}
+
+.mb-8 {
+    margin-bottom: 8rem;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 25rem;
+}
+
+.mt-5 {
+    margin-top: 5rem;
+}
+
+@media (max-width: 575.98px) {
+    html {
+        font-size: 14px;
+    }
+}

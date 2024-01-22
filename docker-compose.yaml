@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    platform: linux/amd64
+    image: signnow/sample-app
+    container_name: signnow-sample-app
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    networks:
+      - signnow-sample-app-network
+    volumes:
+      - .:/app
+
+networks:
+  signnow-sample-app-network:
+    driver: bridge
