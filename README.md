@@ -8,10 +8,10 @@
 
 This sample application demonstrates how the signNow API and PHP SDK can be used to construct applications with signing flows. This sample application operates using the following features:
 
-* [Authentication](https://docs.signnow.com/docs/signnow/reference%2Foperations%2Fcreate-a-oauth-2-token)
-* [Upload document](https://docs.signnow.com/docs/signnow/branches/v1.2/reference%2Foperations%2Fcreate-a-document)
-* [Add fillable fields](https://docs.signnow.com/docs/signnow/branches/v1.2/reference/operations/update-a-document-document-id-adds-fields-to-a-document)
-* [Embedded signing](https://docs.signnow.com/docs/signnow/guides-embedded-signing)
+* [Authentication](https://docs.signnow.com/docs/signnow/j6jxdlizr86se-generate-access-token)
+* [Upload document](https://docs.signnow.com/docs/signnow/i4216w3e1jv3p-upload-document)
+* [Add fillable fields](https://docs.signnow.com/docs/signnow/xsttpdx7r60iw-edit-document)
+* [Embedded signing](https://docs.signnow.com/docs/signnow/ldrvp38247013-create-embedded-signing-invite)
 
 Try using the sample application for testing purposes or use it as a skeleton for your own application. To create an application that generates legally binding signatures, you’ll need a signNow subscription.
 
