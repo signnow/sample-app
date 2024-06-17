@@ -19,7 +19,7 @@
                 <p class="text-secondary">Check the links below for more information</p>
                 <a class="mb-2 me-2 text-nowrap" href="https://github.com/signnow/sample-app" target="_blank" role="button">Download Sample App from GitHub</a>
                 |
-                <a class="ms-2 mb-2 text-nowrap" href="https://docs.signnow.com/docs/signnow/welcome" target="_blank" role="button">API Documentation</a>
+                <a class="ms-2 mb-2 text-nowrap" href="https://docs.signnow.com/docs/signnow/sample-apps" target="_blank" role="button">API Documentation</a>
             </div>
         </main>
     </body>
