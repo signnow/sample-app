@@ -1,0 +1,10 @@
+{
+    "Name": "EmbeddedSignerPatientIntakeForm",
+    "Demo": "https:\/\/sample-app.signnow.com\/EmbeddedSignerPatientIntakeForm",
+    "Publication Readiness": "NOT READY Same feedback as for previous app.",
+    "Landing headline": "Embedded Signer Sample: Patient Intake Form ",
+    "Landing description": "Discover how to complete the patient intake form within the sample application. Explore the airSlate SignNow API functionality for customizing the signing session and collecting the required patient information. ",
+    "steps": "Document to open in Embedded Signer: Please create 3 versions of this app: Patient Intake Form (Healthcare) ",
+    "github php": "https:\/\/github.com\/SignNowInc\/sample-app\/tree\/main\/samples\/EmbeddedSignerPatientIntakeForm",
+    "github java": "https:\/\/github.com\/SignNowInc\/java-sample-app\/tree\/main\/src\/main\/resources\/static\/samples\/EmbeddedSignerPatientIntakeForm"
+}

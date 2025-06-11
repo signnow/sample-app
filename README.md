@@ -31,11 +31,11 @@ Configure the following variables to ensure the application’s proper functiona
 
 | Variable           | Example                                    | Description                                                                                    |
 |--------------------|--------------------------------------------|------------------------------------------------------------------------------------------------|
-| SN_API_HOST        | `https://api.signnow.com`                  | signNow API host                                                                               |
-| SN_API_BASIC_TOKEN | `c2lnbk5vdyBBUEkgc2FtcGxlIEFwcCB2MS4wCg==` | Find your basic token at the [API Dashboard](https://app.signnow.com/webapp/api-dashboard/keys). |
-| SN_API_USER        | `user@mailer.com`                          | The email address of the document signer.                                |
-| SN_API_PASSWORD    | `*****`                                    | Your signNow account password.                                                                 |
-| SN_SIGNER_EMAIL    | `signer@mailer.com`                        | The email address of the person who is supposed to sign a document.                            |
+| SIGNNOW_API_HOST        | `https://api.signnow.com`                  | signNow API host                                                                               |
+| SIGNNOW_API_BASIC_TOKEN | `c2lnbk5vdyBBUEkgc2FtcGxlIEFwcCB2MS4wCg==` | Find your basic token at the [API Dashboard](https://app.signnow.com/webapp/api-dashboard/keys). |
+| SIGNNOW_API_USERNAME        | `user@mailer.com`                          | The email address of the document signer.                                |
+| SIGNNOW_API_PASSWORD    | `*****`                                    | Your signNow account password.                                                                 |
+| SIGNNOW_SIGNER_EMAIL    | `signer@mailer.com`                        | The email address of the person who is supposed to sign a document.                            |
 
 View the entire configuration file, including standard Laravel variables, [here](./.env.example).
 

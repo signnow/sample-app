@@ -1,0 +1,9 @@
+[
+    "EmbeddedSenderWithoutFormFile",
+    "EmbeddedSenderWithFormCreditLoanAgreement",
+    "EmbeddedSignerConsentForm",
+    "EmbeddedSignerConsumerServices",
+    "EmbeddedSignerPatientIntakeForm",
+    "EmbeddedSignerWithFormInsurance",
+    "MedicalInsuranceClaimForm"
+]

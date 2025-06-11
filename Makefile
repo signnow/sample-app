@@ -30,10 +30,10 @@ setup-env:
 	read -p "Your login to signNow account: " sn_user; \
 	read -p "Your password to signNow account: " sn_password; \
 	echo "\n" >> .env; \
-	echo "SN_API_HOST=$$sn_api_host" >> .env; \
-	echo "SN_API_BASIC_TOKEN=$$sn_basic_token" >> .env; \
-	echo "SN_API_USER=$$sn_user" >> .env; \
-	echo "SN_API_PASSWORD=$$sn_password" >> .env; \
-	echo "SN_SIGNER_EMAIL=$$sn_signer_emal" >> .env; \
+	echo "SIGNNOW_API_HOST=$$sn_api_host" >> .env; \
+	echo "SIGNNOW_API_BASIC_TOKEN=$$sn_basic_token" >> .env; \
+	echo "SIGNNOW_API_USERNAME=$$sn_user" >> .env; \
+	echo "SIGNNOW_API_PASSWORD=$$sn_password" >> .env; \
+	echo "SIGNNOW_SIGNER_EMAIL=$$sn_signer_emal" >> .env; \
 	echo "\n" >> .env; \
 	echo "Setup completed."
