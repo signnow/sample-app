@@ -184,4 +184,5 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
+    'samples_whitelist' => json_decode(file_get_contents(base_path('samples_witelist.json')), true),
 ];

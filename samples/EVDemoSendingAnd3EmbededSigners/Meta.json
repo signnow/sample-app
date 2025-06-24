@@ -1,0 +1,11 @@
+{
+    "Name": "EVDemoSendingAnd3EmbeddedSigners",
+    "Demo": "https://sample-app.signnow.com/EVDemoSendingAnd3EmbeddedSigners",
+    "Publication Readiness": "READY FOR REVIEW",
+    "Landing headline": "Real Estate eSign Demo",
+    "Landing description": "Discover how to pre-fill and send a purchase agreement to the agent and buyers using the airSlate SignNow API. Complete the agreement in multiple roles and download the fully executed document.",
+    "steps": "Step 1: User fills a six‑field form (agent + 2 signers) and clicks Continue. Step 2: Server clones the template (ID 34009a3d21b5468d86d886cd715658c453335c61) and maps e‑mails to roles. Step 3: Names for Signer 1 and Signer 2 are pre‑filled in the document. Step 4: Embedded invites are created with signing order Agent → Signer 1 → Signer 2. Step 5: Agent signs inside the iframe; browser auto‑redirects to Signer 1, then to Signer 2 after each completion. Step 6: After the last signature the Finish page appears and lets the user download the signed PDF.",
+    "github php": "https://github.com/SignNowInc/sample-app/tree/main/samples/EVDemoSendingAnd3EmbeddedSigners",
+    "github java": "https://github.com/SignNowInc/java-sample-app/tree/main/src/main/resources/static/samples/EVDemoSendingAnd3EmbeddedSigners",
+    "show_in_sample_list": false
+}
