@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\EmbeddedInviteController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RoutingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,4 +14,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('/embedded-invites', [EmbeddedInviteController::class, 'create']);
+Route::post('/samples/{sample_name}', [RoutingController::class, 'routePost']);

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RoutingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,10 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', static function () {
-    return view('index');
-});
-
-Route::get('/thank-you', static function () {
-    return view('thanks');
+Route::middleware('web')->group(function () {
+    Route::get('/samples/{sample_name}', [RoutingController::class, 'routeGet']);
 });

@@ -1,0 +1,10 @@
+{
+    "Name": "EmbeddedSignerConsumerServices",
+    "Demo": "https:\/\/sample-app.signnow.com\/EmbeddedSignerConsumerServices",
+    "Publication Readiness": "NOT READY Same feedback as for previous app.",
+    "Landing headline": "Veterinary intake form sample app",
+    "Landing description": "Learn how to complete and sign a veterinary clinic intake form using embedded signing with the airSlate SignNow API. Fill out the form, sign it directly in the app, and download the completed document. ",
+    "steps": "Document to open in Embedded Signer: Please create 3 versions of this app: Veterinary Clinic Intake Form (Consumer Services)",
+    "github php": "https:\/\/github.com\/SignNowInc\/sample-app\/tree\/main\/samples\/EmbeddedSignerConsumerServices",
+    "github java": "https:\/\/github.com\/SignNowInc\/java-sample-app\/tree\/main\/src\/main\/resources\/static\/samples\/EmbeddedSignerConsumerServices"
+}
