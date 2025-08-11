@@ -158,7 +158,8 @@ class SampleController implements SampleControllerInterface
         $cloneResponse = $this->createDocumentFromTemplate($apiClient);
         $documentId = $cloneResponse->getId();
 
-        $redirectUrl = config('app.url') . '/samples/EmbeddedSenderWithoutFormFile?page=download-with-status&document_id=' . $documentId;
+        $redirectUrl = config('app.url') . '/samples/EmbeddedSenderWithoutFormFile?page=download-with-status&document_id='
+            . $documentId;
 
         $embeddedRequest = new DocumentEmbeddedSendingLinkPostRequest('document', $redirectUrl, 16);
         $embeddedRequest->withDocumentId($documentId);

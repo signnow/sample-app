@@ -1,47 +1,37 @@
 <!doctype html>
-<html class="no-js" lang="">
-
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sample App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Onboarding System - SignNow Sample</title>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
-    <meta name="description" content="">
-
-    <meta property="og:title" content="">
-    <meta property="og:type" content="">
-    <meta property="og:url" content="">
-    <meta property="og:image" content="">
-    <meta property="og:image:alt" content="">
-
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-    <meta name="theme-color" content="#fafafa">
+    <link href="/css/styles.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 </head>
-
 <body>
 <div class="header">
     <img src="/img/sign-now.png" alt="Logo">
 </div>
 
-<div id="form-container" style="display: none;">
-    <div>
+    <!-- Form Page -->
+    <div id="form-page" class="container-block">
         <h4>HR Onboarding System</h4>
-        <form id="contact-form" action="#" method="post">
+        <form id="contact-form">
             <div class="sn-input-group mb-3">
                 <label for="employee_name">Employee Name<span class="text-danger">*</span></label>
                 <input type="text" placeholder="John Smith" id="employee_name" name="employee_name" required>
             </div>
             <div class="sn-input-group mb-3">
                 <label for="employee_email">Employee Email<span class="text-danger">*</span></label>
-                <input type="email" placeholder="Employee Email" id="employee_email" name="employee_email">
+                <input type="email" placeholder="Employee Email" id="employee_email" name="employee_email" required>
             </div>
             <div class="sn-input-group mb-3">
                 <label for="hr_manager_email">HR Manager Email<span class="text-danger">*</span></label>
-                <input type="email" placeholder="HR Manager" id="hr_manager_email" name="hr_manager_email">
+                <input type="email" placeholder="HR Manager" id="hr_manager_email" name="hr_manager_email" required>
+            </div>
+            <div class="sn-input-group mb-3">
+                <label for="employer_email">Employer Email<span class="text-danger">*</span></label>
+                <input type="email" placeholder="Employer Email" id="employer_email" name="employer_email" required>
             </div>
             <div class="divider sn-input-group mt-1 mb-3"></div>
             <button type="submit" class="button-primary" id="continueButton">Continue</button>
@@ -50,38 +40,16 @@
                 Loading...
             </button>
         </form>
-    </div>
 </div>
 
-<div id="download-with-status" class="wide-container-block" style="display: none;">
-    <ul class="status-list" id="documentList">
-        <li class="status-item">
-            <div class="status-wrapper">
-                <img src="/img/doc-status.png" alt="Document" />
-                <div class="status-info">
-                    <strong>Document 1</strong>
-                    <span class="status-date">Nov 08, 2023 at 9:00pm</span>
-                </div>
-            </div>
-            <div class="status-container">
-                <div class="status-badge">&#9679; Waiting for Others</div>
-            </div>
-            <div>
-                <button class="button-outlined download-document">
-                    Download Document
-                </button>
-            </div>
-        </li>
-    </ul>
-</div>
-
+    <!-- Document Selector Page -->
 <div id="document-selector" class="document-selector container-block" style="display: none;">
-    <h1>Select a Document</h1>
+        <h4>Select Documents</h4>
     <ul class="document-list">
         <li class="document-item" data-id="940989288b8b4c62a950b908333b5b21efd6a174">
-            <img src="/img/doc-preview.png" alt="I9 From" class="document-image">
+                <img src="/img/doc-preview.png" alt="I9 Form" class="document-image">
             <div class="document-details">
-                <h3 class="document-title">I9 From</h3>
+                    <h3 class="document-title">I9 Form</h3>
                 <p class="document-date gray--700">Nov 07, 2017 at 9:00pm</p>
             </div>
         </li>
@@ -107,30 +75,40 @@
     </button>
 </div>
 
-
-<div class="copyright gray--700 mt-3">Copyright (c) 2025 airSlate, Inc., SignNow API Sample Application v3.0</div>
-
+    <!-- Status Page -->
+<div id="status-page" class="wide-container-block" style="display: none;">
+    <div class="mb-3">
+        <button id="refresh-status-btn" class="button-primary">
+            Refresh Status
+        </button>
+    </div>
+    <ul class="status-list" id="documentList">
+        <li class="status-item">
+            <div class="status-wrapper">
+                <img src="/img/doc-status.png" alt="Document" />
+                <div class="status-info">
+                    <strong>Document 1</strong>
+                    <span class="status-date">Nov 08, 2023 at 9:00pm</span>
+                </div>
+            </div>
+            <div class="status-container">
+                <div class="status-badge">&#9679; Waiting for Others</div>
+            </div>
+            <div>
+                <button class="button-outlined download-document">
+                    Download Document
+                </button>
+            </div>
+        </li>
+    </ul>
+</div>
 
 <script>
-    /**
-     * Handles dynamic page rendering and initialization based on the `page` query parameter in the URL.
-     *
-     * @param {Object} pagesMap - A map where each key is the ID of a container element (and page name),
-     *                            and the value is a corresponding async handler function.
-     * @param {string} [defaultKey] - (Optional) The default page key to use if the `page` parameter is missing or invalid.
-     *                                If not provided, the first key in `pagesMap` will be used as fallback.
-     *
-     * This function:
-     * - Hides all elements whose IDs match the keys in `pagesMap`.
-     * - Displays only the one corresponding to the current `page` parameter or the default.
-     * - Calls the handler function for that page.
-     *
-     * Example usage:
-     * handlePages({
-     *   'form-container': async (el) => { ... },
-     *   'download-container': async (el) => { ... },
-     * });
-     */
+        function getQueryParam(key) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(key) || '';
+        }
+
     async function handlePages(pagesMap, defaultKey) {
         const fallbackKey = defaultKey || Object.keys(pagesMap)[0];
         const pageParam = new URLSearchParams(window.location.search).get('page') || fallbackKey;
@@ -152,26 +130,43 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        await handlePages({
-            'form-container': async (el) => {
+        async function initFormPage() {
                 const form = document.getElementById('contact-form');
+            const submitBtn = document.getElementById('continueButton');
+            const loadingBtn = document.getElementById('loadingButton');
 
-                form.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    document.getElementById('loadingButton').classList.remove('d-none');
-                    document.getElementById('continueButton').classList.add('d-none');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const data = {
+                    employee_name: formData.get('employee_name'),
+                    employee_email: formData.get('employee_email'),
+                    hr_manager_email: formData.get('hr_manager_email'),
+                    employer_email: formData.get('employer_email')
+                };
 
-                    const employee_name = encodeURIComponent(document.getElementById('employee_name').value);
-                    const employee_email = encodeURIComponent(document.getElementById('employee_email').value);
-                    const hr_manager_email = encodeURIComponent(document.getElementById('hr_manager_email').value);
+                submitBtn.classList.add('d-none');
+                loadingBtn.classList.remove('d-none');
 
-                    window.location.href = `/samples/HROnboardingSystem?page=document-selector&employee_name=${employee_name}&employee_email=${employee_email}&hr_manager_email=${hr_manager_email}`;
+                try {
+                    // Redirect to document selector with form data
+                    const params = new URLSearchParams(data);
+                    window.location.href = `?page=document-selector&${params.toString()}`;
+                } catch (error) {
+                    alert('An error occurred while processing your request');
+                    console.error(error);
+                } finally {
+                    loadingBtn.classList.add('d-none');
+                    submitBtn.classList.remove('d-none');
+                }
                 });
-            },
-            'document-selector': async (el) => {
-                const documentItems = el.querySelectorAll('.document-item');
+        }
+
+        async function initDocumentSelector() {
+            const documentItems = document.querySelectorAll('.document-item');
                 const continueButton = document.getElementById('continue-btn-documents-selected');
+            const loadingButton = document.getElementById('loading-btn-documents-selected');
                 let selectedDocumentIds = new Set();
 
                 documentItems.forEach(item => {
@@ -184,40 +179,54 @@
                 });
 
                 continueButton.addEventListener('click', async () => {
+                continueButton.classList.add('d-none');
+                loadingButton.classList.remove('d-none');
 
-                    document.getElementById('loading-btn-documents-selected').classList.remove('d-none');
-                    document.getElementById('continue-btn-documents-selected').classList.add('d-none');
-
+                try {
                     const params = new URLSearchParams(window.location.search);
                     const employee_name = params.get('employee_name');
                     const employee_email = params.get('employee_email');
                     const hr_manager_email = params.get('hr_manager_email');
+                    const employer_email = params.get('employer_email');
 
                     const response = await fetch('/api/samples/HROnboardingSystem', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
+                            action: 'create-invite',
                             employee_name,
                             employee_email,
                             hr_manager_email,
+                            employer_email,
                             template_ids: Array.from(selectedDocumentIds),
-                            action: 'create-embedded-invite',
                         })
                     });
 
-                    if (!response.ok) throw new Error('Error repone');
+                    const result = await response.json();
 
-                    const data = await response.json();
-
-                    window.location.href = data.link;
+                    if (result.success) {
+                        // Redirect directly to status page
+                        window.location.href = `?page=status-page&document_group_id=${result.document_group_id}`;
+                    } else {
+                        alert(result.message || 'An error occurred');
+                    }
+                } catch (error) {
+                    alert('An error occurred while processing your request');
+                    console.error(error);
+                } finally {
+                    loadingButton.classList.add('d-none');
+                    continueButton.classList.remove('d-none');
+                }
                 });
-            },
+        }
 
-            'download-with-status': async () => {
-                parent.postMessage({type: "SAMPLE_APP_FINISHED"}, location.origin)
-                const documentList = document.getElementById('documentList');
+        async function initStatusPage() {
+            parent.postMessage({type: "SAMPLE_APP_FINISHED"}, location.origin)
+            const documentList = document.getElementById('documentList');
+            const refreshButton = document.getElementById('refresh-status-btn');
 
-                let interval = setInterval(async () => {
+            async function checkStatus() {
+                try {
                     const response = await fetch('/api/samples/HROnboardingSystem', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -230,42 +239,60 @@
                     const data = await response.json();
 
                     if(data.status === "fulfilled") {
-                        clearInterval(interval);
+                        refreshButton.disabled = true;
+                        // Update status badge instead of button text
+                        const statusBadge = document.querySelector('.status-badge');
+                        if (statusBadge) {
+                            statusBadge.textContent = '✓ Completed';
+                        }
                     }
-                }, 1500)
-
-                documentList.addEventListener('click', async (e) => {
-                    try {
-                        const response = await fetch('/api/samples/HROnboardingSystem', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                document_group_id: new URLSearchParams(window.location.search).get('document_group_id'),
-                            })
-                        });
-
-                        if (!response.ok) throw new Error('Ошибка при получении файла');
-
-                        const blob = await response.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'document.pdf';
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(url);
-                    } catch (error) {
-                        console.error('Error downloading document:', error);
-                        alert('Error downloading document');
-                    }
-                });
-
+                } catch (error) {
+                    console.error('Error checking status:', error);
+                }
             }
-        }, 'form-container');
+
+            // Initial status check
+            await checkStatus();
+
+            // Add click handler for refresh button
+            refreshButton.addEventListener('click', checkStatus);
+
+            documentList.addEventListener('click', async (e) => {
+                try {
+                    const response = await fetch('/api/samples/HROnboardingSystem', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            document_group_id: new URLSearchParams(window.location.search).get('document_group_id'),
+                            action: 'download-doc-group'
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Error downloading file');
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'document.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                } catch (error) {
+                    console.error('Error downloading document:', error);
+                    alert('Error downloading document');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await handlePages({
+                'form-page': initFormPage,
+                'document-selector': initDocumentSelector,
+                'status-page': initStatusPage
+            }, 'form-page');
     });
 </script>
-
 </body>
-
 </html>
