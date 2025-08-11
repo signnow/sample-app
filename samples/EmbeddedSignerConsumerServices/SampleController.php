@@ -233,6 +233,7 @@ class SampleController implements SampleControllerInterface
     ): string {
         $downloadDoc = new DocumentDownloadGet();
         $downloadDoc->withDocumentId($documentId);
+        $downloadDoc->withType('collapsed');
 
         $response = $apiClient->send($downloadDoc);
         /** @var DocumentDownloadGetResponse $response */

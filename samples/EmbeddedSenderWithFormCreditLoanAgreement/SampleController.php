@@ -23,7 +23,6 @@ use SignNow\Api\EmbeddedSending\Response\DocumentEmbeddedSendingLinkPost as Docu
 
 class SampleController implements SampleControllerInterface
 {
-
     private const TEMPLATE_ID = 'de45a9a2a6014c2c8ac0a4d9057b17a2108e77e7';
     /**
      * Handle GET requests for the Credit Loan Agreement demo.
@@ -164,8 +163,11 @@ class SampleController implements SampleControllerInterface
      * Returns:
      * - string: URL of the embedded signing session for the newly created document.
      */
-    private function createEmbeddedInviteAndReturnSendingLink(ApiClient $apiClient, string $templateId, array $fields): string
-    {
+    private function createEmbeddedInviteAndReturnSendingLink(
+        ApiClient $apiClient,
+        string $templateId,
+        array $fields
+    ): string {
         $document = $this->createDocumentFromTemplate($apiClient, $templateId);
 
         $this->prefillFields($apiClient, $document->getId(), $fields);
@@ -227,7 +229,8 @@ class SampleController implements SampleControllerInterface
      */
     private function getEmbeddedSendingLink(ApiClient $apiClient, string $documentId): string
     {
-        $redirectUrl = config('app.url') . '/samples/EmbeddedSenderWithFormCreditLoanAgreement?page=download-with-status&document_id=' . $documentId;
+        $redirectUrl = config('app.url') . '/samples/EmbeddedSenderWithFormCreditLoanAgreement?page=download-with-status&document_id='
+            . $documentId;
 
         $request = new DocumentEmbeddedSendingLinkPostRequest('invite', $redirectUrl, 16);
         $request->withDocumentId($documentId);

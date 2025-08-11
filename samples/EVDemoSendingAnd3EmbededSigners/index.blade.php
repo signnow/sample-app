@@ -214,7 +214,7 @@ async function showSigningPrompt(step) {
 
     // Label the UI
     signingTitle.textContent        = `Start Signing as ${thisRole.displayName}`;
-    signingInstructions.textContent = `Click the button below to open the embedded SignNow session for ${thisRole.displayName}.`;
+    signingInstructions.textContent = ``;
 
     // For "agent" step, we already have embedded_link from "start-workflow" call.
     // For "signer1" or "signer2", we must fetch "next-signer" from the server to get a new link.

@@ -69,6 +69,41 @@ The flow is suitable for business scenarios where a form-based agreement (e.g., 
 - **Redirect URL**: Configured via `config('app.url')`, appended with `?page=download-with-status&document_id={document_id}`.
 - **SignNow SDK**: Uses the official SignNow PHP SDK; credentials loaded from environment settings.
 
+____
+
+## Ready to build eSignature integrations with SignNow API? Get the SignNow extension for GitHub Copilot
+
+Use AI-powered code suggestions to generate SignNow API code snippets in your IDE with GitHub Copilot. Get examples for common integration tasks—from authentication and sending documents for signature to handling webhooks, and building branded workflows.
+
+###  **🚀 Why use SignNow with GitHub Copilot**
+
+* **Relevant code suggestions**: Get AI-powered, up-to-date code snippets for SignNow API calls. All examples reflect the latest API capabilities and follow current best practices.
+* **Faster development**: Reduce time spent searching documentation.
+* **Fewer mistakes**: Get context-aware guidance aligned with the SignNow API.
+* **Smooth onboarding**: Useful for both new and experienced developers working with the API.
+
+### **Prerequisites:**
+
+1\. GitHub Copilot installed and enabled.  
+2\. SignNow account. [Register here](https://www.signnow.com/developers)
+
+### ⚙️ **How to use it**
+
+1\. Install the [SignNow extension](https://github.com/apps/signnow).
+
+2\. Start your prompts with [@signnow](https://github.com/signnow) in the Copilot chat window. The first time you use the extension, you may need to authorize it.
+
+3\. Enter a prompt describing the integration scenario.   
+Example: @signnow Generate a Java code example for sending a document group to two signers.
+
+4\. Modify the generated code to match your app’s requirements—adjust parameters, headers, and workflows as needed.
+
+### **Troubleshooting**
+**The extension doesn’t provide code examples for the SignNow API**
+
+Make sure you're using `@signnow` in the Copilot chat and that the extension is installed and authorized.
+____
+
 ## Disclaimer
 
 This sample application is provided **as-is** for demonstration purposes. It is not production-ready and should be reviewed for proper error handling, input validation, security best practices, and customized to fit real-world business requirements.

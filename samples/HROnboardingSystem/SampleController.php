@@ -14,13 +14,17 @@ use SignNow\Api\DocumentGroup\Request\DocumentGroupPost;
 use SignNow\Api\DocumentGroup\Request\DocumentGroupRecipientsGet;
 use SignNow\Api\DocumentGroup\Request\DownloadDocumentGroupPost;
 use SignNow\Api\DocumentGroup\Response\Data\Document\DocumentItem;
+use SignNow\Api\DocumentGroupInvite\Request\GroupInvitePost;
+use SignNow\Api\DocumentGroupInvite\Request\Data\InviteStep\InviteStep;
+use SignNow\Api\DocumentGroupInvite\Request\Data\InviteStep\InviteStepCollection;
+use SignNow\Api\DocumentGroupInvite\Request\Data\InviteStep\InviteAction;
+use SignNow\Api\DocumentGroupInvite\Request\Data\InviteStep\InviteActionCollection;
+use SignNow\Api\DocumentGroupInvite\Request\Data\InviteStep\InviteEmail;
+use SignNow\Api\DocumentGroupInvite\Request\Data\InviteStep\InviteEmailCollection;
+use SignNow\Api\DocumentGroupInvite\Request\Data\CcCollection;
 use SignNow\Api\DocumentGroupInvite\Request\GroupInviteGet;
-use SignNow\Api\EmbeddedGroupInvite\Request\Data\Invite\Document;
-use SignNow\Api\EmbeddedGroupInvite\Request\Data\Invite\DocumentCollection;
-use SignNow\Api\EmbeddedGroupInvite\Request\Data\Invite\Signer;
-use SignNow\Api\EmbeddedGroupInvite\Request\Data\Invite\SignerCollection;
-use SignNow\Api\EmbeddedGroupInvite\Request\GroupInviteLinkPost;
-use SignNow\Api\EmbeddedGroupInvite\Request\GroupInvitePost;
+use SignNow\Api\DocumentGroupInvite\Response\GroupInvitePost as GroupInvitePostResponse;
+use SignNow\Api\DocumentGroupInvite\Response\GroupInviteGet as GroupInviteGetResponse;
 use SignNow\Api\Template\Request\CloneTemplatePost;
 use SignNow\Api\Template\Response\CloneTemplatePost as CloneTemplatePostResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,15 +33,11 @@ use SignNow\Api\DocumentField\Request\Data\FieldCollection as FieldValueCollecti
 use SignNow\Api\DocumentField\Request\DocumentPrefillPut;
 use SignNow\ApiClient;
 use SignNow\Sdk;
-use SignNow\Api\EmbeddedGroupInvite\Request\Data\Invite\Invite;
-use SignNow\Api\EmbeddedGroupInvite\Response\GroupInvitePost as GroupInvitePostResponse;
-use SignNow\Api\EmbeddedGroupInvite\Request\Data\Invite\InviteCollection;
 use SignNow\Api\DocumentGroup\Response\DocumentGroupGet as DocumentGroupGetResponse;
 use SignNow\Api\DocumentGroup\Response\DocumentGroupPost as DocumentGroupPostResponse;
 use SignNow\Api\Document\Response\DocumentGet as DocumentGetResponse;
-use SignNow\Api\EmbeddedGroupInvite\Response\GroupInviteLinkPost as GroupInviteLinkPostResponse;
 use SignNow\Api\DocumentGroup\Response\DownloadDocumentGroupPost as DownloadDocumentGroupPostResponse;
-use SignNow\Api\DocumentGroupInvite\Response\GroupInviteGet as GroupInviteGetResponse;
+use SignNow\Api\DocumentGroup\Response\DocumentGroupRecipientsGet as DocumentGroupRecipientsGetResponse;
 
 class SampleController implements SampleControllerInterface
 {
@@ -60,21 +60,18 @@ class SampleController implements SampleControllerInterface
      *
      * Supported actions:
      *
-     * 1. **create-embedded-invite**:
+     * 1. **create-invite**:
      *    - Triggered after the user submits the onboarding form and selects templates.
      *    - Calls `createDocumentGroup()` to:
      *        - Clone selected templates into live documents,
      *        - Prefill necessary fields (e.g., name, email),
      *        - Combine documents into a document group.
-     *    - Then calls `createEmbeddedInvite()` to create an embedded invite
-     *      for two roles: HR Manager and Employee.
-     *    - Finally, calls `getEmbeddedInviteLink()` to generate a link
-     *      for the first recipient (Employee) to begin signing.
-     *    - Returns the embedded invite link in a JSON response.
+     *    - Then calls `sendInvite()` to create invites for HR Manager and Employee.
+     *    - Returns the document group ID in a JSON response.
      *
      * 2. **invite-status**:
      *    - Periodically called from the frontend to poll the status of the document group invite.
-     *    - Calls `getDocumentGroupInviteStatus()` to retrieve the current signing status.
+     *    - Calls `getDocumentGroupSignersStatus()` to retrieve the current signing status.
      *    - Returns the status (e.g. pending, fulfilled) in a JSON response.
      *
      * 3. **default (no action or unrecognized action)**:
@@ -94,60 +91,82 @@ class SampleController implements SampleControllerInterface
             ->authenticate()
             ->getApiClient();
 
-        if ($action === 'create-embedded-invite') {
-            $employeeName = $request->input('employee_name');
-            $employeeEmail = $request->input('employee_email');
-            $hrManagerEmail = $request->input('hr_manager_email');
-            $template_ids = $request->input('template_ids');
-
-            $contractPreparerEmail = config('signnow.api.signer_email');
-
-            $DGId = $this->createDocumentGroup(
-                apiClient: $apiClient,
-                template_ids: $template_ids,
-                fields: [
-                    'Name' => $employeeName,
-                    'Text Field 2' => $employeeName,
-                    'Text Field 156' => $employeeName,
-                    'Email' => $employeeEmail,
-                ]
-            );
-
-            $embeddedInviteResponse = $this->createEmbeddedInvite(
-                $apiClient,
-                $DGId,
-                $employeeEmail,
-                $hrManagerEmail,
-                $contractPreparerEmail,
-            );
-
-            $link = $this->getEmbeddedInviteLink(
-                $apiClient,
-                $DGId,
-                $embeddedInviteResponse->getData()->getId(),
-                $contractPreparerEmail
-            );
-
-            return new JsonResponse(['link' => $link]);
-        } elseif ($action === "invite-status") {
-            $documentGroupId = $request->input('document_group_id');
-
-            $status = $this->getDocumentGroupInviteStatus(
-                $apiClient,
-                $documentGroupId
-            );
-
-            return new JsonResponse(['status' => $status]);
-        } else {
-            $documentGroupId = $request->input('document_group_id');
-
-            $file = $this->downloadDocumentGroup($apiClient, $documentGroupId);
-
-            return new Response($file, 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="result.pdf"',
-            ]);
+        switch ($action) {
+            case 'create-invite':
+                return $this->createInvite($request, $apiClient);
+            case 'invite-status':
+                return $this->getInviteStatus($request, $apiClient);
+            case 'download-doc-group':
+                return $this->downloadDocumentGroup($request, $apiClient);
+            default:
+                return response()->json(['success' => false, 'message' => 'Invalid action'], 400);
         }
+    }
+
+    private function createInvite(Request $request, ApiClient $apiClient): JsonResponse
+    {
+        $employeeName = $request->input('employee_name');
+        $employeeEmail = $request->input('employee_email');
+        $hrManagerEmail = $request->input('hr_manager_email');
+        $employerEmail = $request->input('employer_email');
+        $template_ids = $request->input('template_ids');
+
+        if (!$employeeName || !$employeeEmail || !$hrManagerEmail || !$employerEmail || !$template_ids) {
+            return response()->json(['success' => false, 'message' => 'All fields are required'], 400);
+        }
+
+        // 1. Create Document Group from templates
+        $documentGroupId = $this->createDocumentGroup(
+            apiClient: $apiClient,
+            template_ids: $template_ids,
+            fields: [
+                'Name' => $employeeName,
+                'Text Field 2' => $employeeName,
+                'Text Field 156' => $employeeName,
+                'Email' => $employeeEmail,
+            ]
+        );
+
+        // 2. Send invite to recipients
+        $inviteResponse = $this->sendInvite(
+            $apiClient,
+            $documentGroupId,
+            $employeeEmail,
+            $hrManagerEmail,
+            $employerEmail
+        );
+
+        if (!$inviteResponse['success']) {
+            return response()->json($inviteResponse, 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'document_group_id' => $documentGroupId
+        ]);
+    }
+
+    private function getInviteStatus(Request $request, ApiClient $apiClient): JsonResponse
+    {
+        $documentGroupId = $request->input('document_group_id');
+        $signers = $this->getDocumentGroupSignersStatus($apiClient, $documentGroupId);
+        return response()->json($signers);
+    }
+
+    private function downloadDocumentGroup(Request $request, ApiClient $apiClient): Response
+    {
+        $documentGroupId = $request->input('document_group_id');
+
+        if (!$documentGroupId) {
+            return response()->json(['success' => false, 'message' => 'Document group ID is required'], 400);
+        }
+
+        $fileContent = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+
+        return new Response($fileContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="onboarding_documents.pdf"'
+        ]);
     }
 
     /**
@@ -198,149 +217,108 @@ class SampleController implements SampleControllerInterface
     }
 
     /**
-     * Creates an embedded invite for two recipients: Employee and HR Manager.
+     * Sends invites to Contract Preparer, HR Manager and Employee for document signing.
      *
      * Steps performed:
-     * 1. Retrieves document group metadata and signer roles using `getDocumentGroup()`.
-     * 2. Matches signer roles ('Employee', 'Employer') to the provided emails.
-     * 3. Groups documents by signer and role, assigning each signer the relevant documents.
-     * 4. Creates two ordered invites — HR Manager signs first, then Employee.
-     * 5. Sends the invite request using `GroupInvitePost`, enabling embedded signing flow.
+     * 1. Retrieves document group metadata using `getDocumentGroup()`.
+     * 2. Creates invite actions for each document in the group.
+     * 3. Creates invite emails for all recipients with appropriate subjects and messages.
+     * 4. Creates invite steps with proper ordering - Contract Preparer signs first, then HR Manager, then Employee.
+     * 5. Sends the invite request using `GroupInvitePost`.
      *
      * This function is used immediately after the document group is created.
-     * It sets up the actual signing flow, assigning specific documents to each signer
-     * and defining the signing order.
+     * It sets up the actual signing flow, defining the signing order and
+     * sending email notifications to all participants.
      */
-    private function createEmbeddedInvite(
+    private function sendInvite(
         ApiClient $apiClient,
         string $documentGroupId,
         string $employeeEmail,
         string $hrManagerEmail,
-        string $contractPreparerEmail,
-    ): GroupInvitePostResponse {
+        string $employerEmail
+    ): array {
         $documentGroupGetResponse = $this->getDocumentGroup($apiClient, $documentGroupId);
 
-        $emailList = [
-            'Contract Preparer' => $contractPreparerEmail,
+        // Create invite actions for each document
+        $inviteActions = [];
+        $inviteEmails = [];
+
+        // Define role mappings
+        $roleMappings = [
+            'Contract Preparer' => $hrManagerEmail,
             'Employee' => $employeeEmail,
-            'Employer' => $hrManagerEmail,
+            'Employer' => $employerEmail,
         ];
 
-        $signerDocs = [
-            'Contract Preparer' => [],
-            'Employee' => [],
-            'Employer' => [],
-        ];
-
-        print_r($documentGroupGetResponse);
-
         foreach ($documentGroupGetResponse->getDocuments() as $document) {
-            /**@var $document DocumentItem */
-            foreach ($document->getRoles() as $role) {
-                if ($role === 'Employee') {
-                    $signerDocs['Employee'][$document->getId()] = new Document(
-                        id: $document->getId(),
-                        action: 'sign',
-                        role: $role
-                    );
-                } elseif ($role === 'Employer') {
-                    $signerDocs['Employer'][$document->getId()] = new Document(
-                        id: $document->getId(),
-                        action: 'sign',
-                        role: $role
-                    );
-                } elseif ($role === 'Contract Preparer') {
-                    $signerDocs['Contract Preparer'][$document->getId()] = new Document(
-                        id: $document->getId(),
-                        action: 'sign',
-                        role: $role
-                    );
-                }
-            }
-        }
+            $documentRoles = $this->getDocumentRoles($apiClient, $document->getId());
 
-        foreach ($documentGroupGetResponse->getDocuments() as $document) {
-            foreach ($signerDocs as $roleName => $docs) {
-                if (!isset($docs[$document->getId()])) {
-                    $signerDocs[$roleName][$document->getId()] = new Document(
-                        id: $document->getId(),
-                        action: 'view',
-                        role: $roleName
-                    );
-                }
-            }
-        }
 
-        $redirectUrl = config('app.url')
-            . '/samples/HROnboardingSystem?page=download-with-status&document_group_id='
-            . $documentGroupId;
-
-        $inviteList = [];
-        $order = 1;
-        foreach ($emailList as $role => $email) {
-            $invite = new Invite(
-                order: $order,
-                signers: new SignerCollection([
-                    new Signer(
+            foreach ($roleMappings as $roleName => $email) {
+                if (in_array($roleName, $documentRoles)){
+                    $inviteActions[] = new InviteAction(
                         email: $email,
-                        authMethod: 'none',
-                        documents: new DocumentCollection($signerDocs[$role]),
-                        redirectUri: $redirectUrl,
+                        roleName: $roleName,
+                        action: 'sign',
+                        documentId: $document->getId(),
+                        allowReassign: '0',
+                        declineBySignature: '0',
+                        redirectUri: config('app.url') . '/samples/HROnboardingSystem?page=status-page&document_group_id='
+                        . $documentGroupId,
                         redirectTarget: 'self'
-                    )
-                ])
-            );
-
-            $inviteList[] = $invite;
-            $order++;
+                    );
+                } else {
+                    // If role is not in mappings, assign as viewer
+                    $inviteActions[] = new InviteAction(
+                        email: $email,
+                        roleName: $roleName,
+                        action: 'view',
+                        documentId: $document->getId(),
+                    );
+                }
+            }
         }
 
-        print_r($inviteList);
+        foreach ($roleMappings as $roleName => $email) {
+            $inviteEmails[] = new InviteEmail(
+                email: $email,
+                subject: 'HR Onboarding Documents - Action Required',
+                message: "Please review and sign the onboarding documents as {$roleName}.",
+                expirationDays: 30
+            );
+        }
 
-        $embeddedInviteRequest = new GroupInvitePost(
-            invites: new InviteCollection($inviteList),
+        $inviteActionCollection = new InviteActionCollection($inviteActions);
+
+        // Create invite emails collection
+        $inviteEmailCollection = new InviteEmailCollection($inviteEmails);
+
+        // Create invite step
+        $inviteStep = new InviteStep(
+            order: 1,
+            inviteActions: $inviteActionCollection,
+            inviteEmails: $inviteEmailCollection
+        );
+
+        $inviteStepCollection = new InviteStepCollection([$inviteStep]);
+
+        // Create empty collections
+        $ccCollection = new CcCollection([]);
+
+        // Create and send invite request
+        $inviteRequest = new GroupInvitePost(
+            inviteSteps: $inviteStepCollection,
+            cc: $ccCollection,
             signAsMerged: true
         );
-        $embeddedInviteRequest->withDocumentGroupId($documentGroupId);
+        $inviteRequest->withDocumentGroupId($documentGroupId);
+        /** @var GroupInvitePostResponse $response */
 
-        return $apiClient->send($embeddedInviteRequest);
-    }
+        $apiClient->send($inviteRequest);
 
-    /**
-     * Generates an embedded signing link for a specific invite in a document group.
-     */
-    private function getEmbeddedInviteLink(
-        ApiClient $apiClient,
-        string $documentGroupId,
-        string $inviteId,
-        string $email
-    ): string {
-        $inviteLinkRequest = (new GroupInviteLinkPost($email, 'none', 15))
-            ->withDocumentGroupId($documentGroupId)
-            ->withEmbeddedInviteId($inviteId);
-
-        /**@var GroupInviteLinkPostResponse $inviteLinkResponse*/
-        $inviteLinkResponse = $apiClient->send($inviteLinkRequest);
-
-        return $inviteLinkResponse->getData()->getLink();
-    }
-
-    /**
-     * Retrieves the current status of a document group invite (e.g. pending, fulfilled).
-     */
-    private function getDocumentGroupInviteStatus(
-        ApiClient $apiClient,
-        string $documentGroupId
-    ): string {
-        $documentGroupGetResponse = $this->getDocumentGroup($apiClient, $documentGroupId);
-
-        $documentGroupInviteGet = (new GroupInviteGet())
-            ->withDocumentGroupId($documentGroupId)
-            ->withInviteId($documentGroupGetResponse->getInviteId());
-
-        /**@var GroupInviteGetResponse $response */
-        $response = $apiClient->send($documentGroupInviteGet);
-        return $response->getInvite()->getStatus();
+        return [
+            'success' => true
+        ];
     }
 
     /**
@@ -463,6 +441,45 @@ class SampleController implements SampleControllerInterface
     }
 
     /**
+     * Retrieves the current status of document group signers.
+     */
+    private function getDocumentGroupSignersStatus(
+        ApiClient $apiClient,
+        string $documentGroupId
+    ): array {
+        $documentGroupGetResponse = $this->getDocumentGroup($apiClient, $documentGroupId);
+
+        $documentGroupInviteGet = (new GroupInviteGet())
+            ->withDocumentGroupId($documentGroupId)
+            ->withInviteId($documentGroupGetResponse->getInviteId());
+
+        /**@var GroupInviteGetResponse $response */
+        $response = $apiClient->send($documentGroupInviteGet);
+        return ['status' => $response->getInvite()->getStatus()];
+    }
+
+    /**
+     * Gets available roles from a document.
+     */
+    private function getDocumentRoles(
+        ApiClient $apiClient,
+        string $documentId
+    ): array {
+        $document = $this->getDocument($apiClient, $documentId);
+        $roles = [];
+
+        foreach ($document->getRoles() as $role) {
+            /**@var Role $role*/
+            $roleName = $role->getName();
+            if ($roleName && !in_array($roleName, $roles)) {
+                $roles[] = $roleName;
+            }
+        }
+
+        return $roles;
+    }
+
+    /**
      * Downloads a document group as a single merged PDF file.
      *
      * Steps performed:
@@ -482,7 +499,7 @@ class SampleController implements SampleControllerInterface
      *
      * allowing users to download the fully signed and merged onboarding documents.
      */
-    private function downloadDocumentGroup(
+    private function downloadDocumentGroupFile(
         ApiClient $apiClient,
         string $documentGroupId
     ): string {
