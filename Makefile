@@ -1,10 +1,10 @@
 .PHONY: build up setup down clear setup-env
 
 build:
-	@docker-compose build --no-cache --force-rm
+	@docker compose build --no-cache --force-rm
 
 up:
-	@docker-compose up -d
+	@docker compose up -d
 
 setup:
 	@docker exec -it signnow-sample-app composer install --ignore-platform-reqs --no-dev
