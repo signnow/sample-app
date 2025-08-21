@@ -2,7 +2,7 @@
 
 ## Use Case Overview
 
-This sample demonstrates how to use the SignNow PHP SDK to implement an Embedded Signer workflow. In this flow, the user signs a pre-defined Consent Form within your application and is then redirected to a confirmation screen where they can download the completed document.
+This sample demonstrates how to use the SignNow REST API without the PHP SDK to implement an Embedded Signer workflow. In this flow, the user signs a pre-defined Consent Form within your application and is then redirected to a confirmation screen where they can download the completed document.
 
 This specific example simulates a scenario where a dinosaur owner provides consent for various grooming services by signing a digital liability waiver and service agreement.
 
@@ -45,10 +45,10 @@ This specific example simulates a scenario where a dinosaur owner provides conse
     - The app fetches the signed PDF and sends it to the user for download.
 
 ## Notes
-- The template ID used in this demo: 59b3ff2c50f240b69a3e50412ea3c32453ce8003.
+- The template ID used in this demo: 3d28c78de8ec43ccab81a3e7dde07925cb5a1d29.
 - The template is a "Beauty Procedures Consent Form" for Luxe Dinosaur Grooming Salon.
 - Signer's email is pulled from config: config('signnow.api.signer_email').
-- All API requests are made via the official SignNow SDK using credentials from the .env file.
+- All API requests are made via direct HTTP requests using Guzzle with credentials from the .env file.
 
 ____
 

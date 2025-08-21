@@ -5,24 +5,10 @@ declare(strict_types=1);
 namespace Samples\EmbeddedSignerConsentForm;
 
 use App\Http\Controllers\SampleControllerInterface;
+use GuzzleHttp\Client;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use SignNow\Api\Document\Request\DocumentDownloadGet;
-use SignNow\Api\Template\Request\CloneTemplatePost;
 use Symfony\Component\HttpFoundation\Response;
-use SignNow\Api\Document\Request\DocumentGet;
-use SignNow\Api\Document\Response\Data\Role;
-use SignNow\Api\Document\Response\DocumentGet as DocumentGetReponse;
-use SignNow\Api\EmbeddedInvite\Request\Data\Invite;
-use SignNow\Api\EmbeddedInvite\Request\Data\InviteCollection;
-use SignNow\Api\EmbeddedInvite\Request\DocumentInviteLinkPost;
-use SignNow\Api\EmbeddedInvite\Request\DocumentInvitePost as DocumentInvitePostRequest;
-use SignNow\Api\EmbeddedInvite\Response\DocumentInviteLinkPost as DocumentInviteLinkPostResponse;
-use SignNow\Api\EmbeddedInvite\Response\DocumentInvitePost as DocumentInvitePostReponse;
-use SignNow\ApiClient;
-use SignNow\Sdk;
-use SignNow\Api\Template\Response\CloneTemplatePost as CloneTemplatePostResponse;
-use SignNow\Api\Document\Response\DocumentDownloadGet as DocumentDownloadGetResponse;
 
 class SampleController implements SampleControllerInterface
 {
@@ -38,7 +24,6 @@ class SampleController implements SampleControllerInterface
      */
     public function handleGet(Request $request): Response
     {
-
         $page = $request->get('page');
 
         if ($page === 'download-container') {
@@ -49,34 +34,30 @@ class SampleController implements SampleControllerInterface
                     'Content-Type' => 'text/html',
                 ]
             );
-        } else {
-            $sdk = new Sdk();
-            $apiClient = $sdk->build()
-                ->authenticate()
-                ->getApiClient();
-
-            $link = $this->createEmbeddedSenderAndReturnSigningLink($apiClient, self::TEMPLATE_ID);
-
-            return new RedirectResponse($link);
         }
+
+        $token = $this->authenticate();
+        $client = $this->buildClient($token);
+
+        $link = $this->createEmbeddedSenderAndReturnSigningLink($client, self::TEMPLATE_ID);
+
+        return new RedirectResponse($link);
     }
 
     /**
      * Handles POST requests to download a completed document.
      *
      * Expects a `document_id` parameter in the request.
-     * Uses the SDK to download the document by its ID and returns it as a PDF file response.
+     * Downloads the document by its ID and returns it as a PDF file response.
      */
     public function handlePost(Request $request): Response
     {
         $documentId = $request->get('document_id');
 
-        $sdk = new Sdk();
-        $apiClient = $sdk->build()
-            ->authenticate()
-            ->getApiClient();
+        $token = $this->authenticate();
+        $client = $this->buildClient($token);
 
-        $file = $this->downloadDocument($apiClient, $documentId);
+        $file = $this->downloadDocument($client, $documentId);
 
         return new Response($file, 200, [
             'Content-Type' => 'application/pdf',
@@ -88,54 +69,52 @@ class SampleController implements SampleControllerInterface
      * Orchestrates the process of generating an embedded invite signing link.
      *
      * Steps:
-     * 1. Authenticates via SDK and clones the document from a template.
+     * 1. Clones the document from a template.
      * 2. Retrieves the signer's role ID from the cloned document.
      * 3. Creates an embedded invite for the signer.
      * 4. Generates and returns the embedded signing link with a redirect back to the download page.
      */
     private function createEmbeddedSenderAndReturnSigningLink(
-        ApiClient $apiClient,
+        Client $client,
         string $templateId,
     ): string {
         $cloneTemplateResponse = $this->createDocumentFromTemplate(
-            $apiClient,
+            $client,
             $templateId,
         );
 
         $signerEmail = config('signnow.api.signer_email');
 
-        $roleId = $this->getSignerUniqueRoleId($apiClient, $cloneTemplateResponse->getId(), "Recipient 1");
+        $roleId = $this->getSignerUniqueRoleId($client, $cloneTemplateResponse['id'], 'Recipient 1');
 
         $documentInviteResponse = $this->createEmbeddedInviteForOneSigner(
-            $apiClient,
-            $cloneTemplateResponse->getId(),
+            $client,
+            $cloneTemplateResponse['id'],
             $signerEmail,
             $roleId
         );
 
         return $this->getEmbeddedInviteLink(
-            $apiClient,
-            $cloneTemplateResponse->getId(),
-            $documentInviteResponse->getData()->first()->getId()
+            $client,
+            $cloneTemplateResponse['id'],
+            $documentInviteResponse['data'][0]['id']
         );
     }
 
     /**
      * Sends a request to the SignNow API to create a document from a template.
      *
-     * Returns a `CloneTemplatePostResponse` containing the new document ID.
+     * Returns an array containing the new document ID.
      */
     private function createDocumentFromTemplate(
-        ApiClient $apiClient,
+        Client $client,
         string $templateId,
-    ): CloneTemplatePostResponse {
-        $cloneTemplate = new CloneTemplatePost();
-        $cloneTemplate->withTemplateId($templateId);
+    ): array {
+        $response = $client->post("/template/{$templateId}/copy", [
+            'json' => new \stdClass(),
+        ]);
 
-        /**@var CloneTemplatePostResponse $cloneTemplateResponse*/
-        $cloneTemplateResponse = $apiClient->send($cloneTemplate);
-
-        return $cloneTemplateResponse;
+        return json_decode((string) $response->getBody(), true);
     }
 
     /**
@@ -145,53 +124,52 @@ class SampleController implements SampleControllerInterface
      * to the 'download-container' page, which will be used after signing is completed.
      */
     private function getEmbeddedInviteLink(
-        ApiClient $apiClient,
+        Client $client,
         string $documentId,
         string $inviteId,
     ): string {
-        $embeddedInvite = new DocumentInviteLinkPost("none", 15);
-        $embeddedInvite->withFieldInviteId($inviteId);
-        $embeddedInvite->withDocumentId($documentId);
+        $response = $client->post("/v2/documents/{$documentId}/embedded-invites/{$inviteId}/link", [
+            'json' => [
+                'auth_method' => 'none',
+                'link_expiration' => 15,
+            ],
+        ]);
 
-        /**@var DocumentInviteLinkPostResponse $embeddedInviteRe*/
-        $embeddedInviteRe = $apiClient->send($embeddedInvite);
+        $embeddedInvite = json_decode((string) $response->getBody(), true);
 
         $redirectUrl = config('app.url')
             . '/samples/EmbeddedSignerConsentForm?page=download-container&document_id='
             . $documentId;
 
-        return $embeddedInviteRe->getData()->getLink() . '&redirect_uri=' . urlencode($redirectUrl);
+        return $embeddedInvite['data']['link'] . '&redirect_uri=' . urlencode($redirectUrl);
     }
 
     /**
      * Sends a request to create an embedded invite for a single signer.
      *
      * Accepts the document ID, signer email, and role ID.
-     * Returns a `DocumentInvitePostResponse` containing invite data.
+     * Returns an array containing invite data.
      */
     private function createEmbeddedInviteForOneSigner(
-        ApiClient $apiClient,
+        Client $client,
         string $documentId,
         string $signerEmail,
         string $roleId,
-    ): DocumentInvitePostReponse {
-        $documentInvite = new DocumentInvitePostRequest(
-            invites: new InviteCollection(
-                [
-                    new Invite(
-                        email: $signerEmail,
-                        roleId: $roleId,
-                        order: 1,
-                        authMethod: 'none',
-                    ),
-                ]
-            ),
-        );
+    ): array {
+        $response = $client->post("/v2/documents/{$documentId}/embedded-invites", [
+            'json' => [
+                'invites' => [
+                    [
+                        'email' => $signerEmail,
+                        'role_id' => $roleId,
+                        'order' => 1,
+                        'auth_method' => 'none',
+                    ],
+                ],
+            ],
+        ]);
 
-        /**@var DocumentInvitePostReponse $documentInviteResponse*/
-        $documentInviteResponse = $apiClient->send($documentInvite->withDocumentId($documentId));
-
-        return $documentInviteResponse;
+        return json_decode((string) $response->getBody(), true);
     }
 
     /**
@@ -201,20 +179,17 @@ class SampleController implements SampleControllerInterface
      * which is required to assign the signer to the correct role in the invite.
      */
     private function getSignerUniqueRoleId(
-        ApiClient $apiClient,
+        Client $client,
         string $documentId,
         string $signerRole
     ): string {
-        /** @var DocumentGetReponse $document */
-        $document = $apiClient->send(
-            (new DocumentGet())->withDocumentId($documentId)
-        );
+        $response = $client->get("/document/{$documentId}");
+        $document = json_decode((string) $response->getBody(), true);
 
-        $roleUniqueId = null;
-        foreach ($document->getRoles() as $role) {
-            /**@var Role $role*/
-            if ($role->getName() === $signerRole) {
-                $roleUniqueId = $role->getUniqueId();
+        $roleUniqueId = '';
+        foreach ($document['roles'] as $role) {
+            if ($role['name'] === $signerRole) {
+                $roleUniqueId = $role['unique_id'];
                 break;
             }
         }
@@ -225,25 +200,51 @@ class SampleController implements SampleControllerInterface
     /**
      * Downloads the finalized signed document as a PDF.
      *
-     * Sends a request to the API to get the document's file,
-     * reads the file from temporary storage, deletes the temp file,
+     * Sends a request to the API to get the document's file
      * and returns the binary content as a string.
      */
     private function downloadDocument(
-        ApiClient $apiClient,
+        Client $client,
         string $documentId
     ): string {
-        $downloadDoc = new DocumentDownloadGet();
-        $downloadDoc->withDocumentId($documentId);
-        $downloadDoc->withType('collapsed');
+        $response = $client->get("/document/{$documentId}/download", [
+            'query' => ['type' => 'collapsed'],
+        ]);
 
-        $response = $apiClient->send($downloadDoc);
-        /** @var DocumentDownloadGetResponse $response */
+        return (string) $response->getBody();
+    }
 
-        $content = file_get_contents($response->getFile()->getRealPath());
+    /**
+     * Authenticates against SignNow API and returns access token.
+     */
+    private function authenticate(): string
+    {
+        $client = new Client(['base_uri' => config('signnow.api.host')]);
 
-        unlink($response->getFile()->getRealPath());
+        $response = $client->post('/oauth2/token', [
+            'headers' => [
+                'Authorization' => 'Basic ' . config('signnow.api.basic_token'),
+            ],
+            'form_params' => [
+                'grant_type' => 'password',
+                'username' => config('signnow.api.user'),
+                'password' => config('signnow.api.password'),
+            ],
+        ]);
 
-        return $content;
+        $data = json_decode((string) $response->getBody(), true);
+
+        return $data['access_token'];
+    }
+
+    private function buildClient(string $token): Client
+    {
+        return new Client([
+            'base_uri' => config('signnow.api.host'),
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type' => 'application/json',
+            ],
+        ]);
     }
 }
