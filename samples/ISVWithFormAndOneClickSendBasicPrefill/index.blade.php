@@ -124,6 +124,9 @@
         }
 
         async function initStatusPage() {
+            // Notify parent that sample is finished
+            parent.postMessage({type: "SAMPLE_APP_FINISHED"}, location.origin);
+            
             const documentGroupId = getQueryParam('document_group_id');
             if (!documentGroupId) {
                 document.getElementById('status-page').innerHTML = '<p>No Document Group ID provided.</p>';
@@ -196,9 +199,6 @@
                                         download: 'document_group.pdf' 
                                     }).click();
                                     window.URL.revokeObjectURL(url);
-                                    
-                                    // Notify parent that sample is finished
-                                    parent.postMessage({type: "SAMPLE_APP_FINISHED"}, location.origin);
                                 } catch {
                                     alert('Error downloading the document.');
                                 }

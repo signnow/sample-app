@@ -242,6 +242,9 @@
      * Page 4 logic: Show status list with signers and download options
      */
     async function initPage4() {
+        // Notify parent that sample is finished
+        parent.postMessage({type: "SAMPLE_APP_FINISHED"}, location.origin);
+        
         const docGroupId = getQueryParam('document_group_id');
         if (!docGroupId) {
             document.getElementById('page4-status-download').innerHTML = '<p>No Document Group ID provided.</p>';
