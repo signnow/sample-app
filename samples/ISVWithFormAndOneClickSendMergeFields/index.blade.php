@@ -43,7 +43,7 @@
     <div id="status-page" class="container-block" style="display: none;">
         <h4>Document Status & Final Document</h4>
         <p>You can check signing status and download the completed document here.</p>
-        
+
         <div id="no-recipients-container" class="no-recipients" style="display: none;">
             <div class="thank-you-message">
                 <img src="/img/no-recipients.svg" alt="signNow" class="mb-3" />
@@ -53,7 +53,7 @@
                 </p>
             </div>
         </div>
-        
+
         <ul class="status-list" id="documentList"></ul>
     </div>
 
@@ -91,7 +91,7 @@
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                
+
                 const formData = new FormData(form);
                 const data = {
                     action: 'prepare_dg',
@@ -131,13 +131,13 @@
         async function initStatusPage() {
             // Notify parent that sample is finished
             parent.postMessage({type: "SAMPLE_APP_FINISHED"}, location.origin);
-            
+
             const documentGroupId = getQueryParam('document_group_id');
             if (!documentGroupId) {
                 document.getElementById('status-page').innerHTML = '<p>No Document Group ID provided.</p>';
                 return;
             }
-            
+
             const documentList = document.getElementById('documentList');
             const noRecipientsContainer = document.getElementById('no-recipients-container');
 
@@ -197,11 +197,14 @@
 
                                     if (!res.ok) throw new Error();
 
+                                    // Extract filename from Content-Disposition header
+                                    const filename = res.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'ISV Form Document Group.pdf';
+
                                     const blob = await res.blob();
                                     const url = window.URL.createObjectURL(blob);
-                                    Object.assign(document.createElement('a'), { 
-                                        href: url, 
-                                        download: 'document_group.pdf' 
+                                    Object.assign(document.createElement('a'), {
+                                        href: url,
+                                        download: filename
                                     }).click();
                                     window.URL.revokeObjectURL(url);
                                 } catch {
@@ -249,4 +252,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

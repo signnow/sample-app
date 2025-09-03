@@ -12,6 +12,7 @@ use SignNow\Api\DocumentGroupInvite\Response\Data\Invite\Step;
 use SignNow\ApiClient;
 use SignNow\Sdk;
 use Symfony\Component\HttpFoundation\Response;
+use SplFileInfo;
 use SignNow\Api\Document\Request\DocumentGet;
 use SignNow\Api\Document\Response\DocumentGet as DocumentGetResponse;
 use SignNow\Api\DocumentField\Request\Data\Field as FieldValue;
@@ -192,14 +193,18 @@ class SampleController implements SampleControllerInterface
             case 'download-doc-group':
             default:
                 $documentGroupId = $request->input('document_group_id');
-                $fileContents = $this->downloadDocumentGroup($apiClient, $documentGroupId);
+
+                $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+
+                $content = file_get_contents($file->getRealPath());
+                unlink($file->getRealPath());
 
                 return new Response(
-                    $fileContents,
+                    $content,
                     200,
                     [
                         'Content-Type'        => 'application/pdf',
-                        'Content-Disposition' => 'attachment; filename="final_document_group.pdf"',
+                        'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"',
                     ]
                 );
         }
@@ -525,10 +530,10 @@ class SampleController implements SampleControllerInterface
     /**
      * Download the entire doc group as a merged PDF, once all are signed.
      */
-    private function downloadDocumentGroup(
+    private function downloadDocumentGroupFile(
         ApiClient $apiClient,
         string $documentGroupId
-    ): string {
+    ): SplFileInfo {
         $downloadRequest = (new DownloadDocumentGroupPost(
             'merged',
             'no'
@@ -537,11 +542,10 @@ class SampleController implements SampleControllerInterface
         /** @var DownloadDocumentGroupPostResponse $response */
         $response = $apiClient->send($downloadRequest);
 
-        $content = file_get_contents($response->getFile()->getRealPath());
-        unlink($response->getFile()->getRealPath());
-
-        return $content;
+        return $response->getFile();
     }
+
+
 
     /**
      * Fetch Document Group info by ID.

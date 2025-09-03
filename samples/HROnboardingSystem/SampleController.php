@@ -33,6 +33,7 @@ use SignNow\Api\DocumentField\Request\Data\FieldCollection as FieldValueCollecti
 use SignNow\Api\DocumentField\Request\DocumentPrefillPut;
 use SignNow\ApiClient;
 use SignNow\Sdk;
+use SplFileInfo;
 use SignNow\Api\DocumentGroup\Response\DocumentGroupGet as DocumentGroupGetResponse;
 use SignNow\Api\DocumentGroup\Response\DocumentGroupPost as DocumentGroupPostResponse;
 use SignNow\Api\Document\Response\DocumentGet as DocumentGetResponse;
@@ -161,11 +162,14 @@ class SampleController implements SampleControllerInterface
             return response()->json(['success' => false, 'message' => 'Document group ID is required'], 400);
         }
 
-        $fileContent = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+        $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
 
-        return new Response($fileContent, 200, [
+        $content = file_get_contents($file->getRealPath());
+        unlink($file->getRealPath());
+
+        return new Response($content, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="onboarding_documents.pdf"'
+            'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"'
         ]);
     }
 
@@ -255,7 +259,7 @@ class SampleController implements SampleControllerInterface
 
 
             foreach ($roleMappings as $roleName => $email) {
-                if (in_array($roleName, $documentRoles)){
+                if (in_array($roleName, $documentRoles)) {
                     $inviteActions[] = new InviteAction(
                         email: $email,
                         roleName: $roleName,
@@ -502,7 +506,7 @@ class SampleController implements SampleControllerInterface
     private function downloadDocumentGroupFile(
         ApiClient $apiClient,
         string $documentGroupId
-    ): string {
+    ): SplFileInfo {
 
         $downloadDocumentGroup = (new DownloadDocumentGroupPost(
             'merged',
@@ -511,10 +515,6 @@ class SampleController implements SampleControllerInterface
         $response = $apiClient->send($downloadDocumentGroup);
         /** @var DownloadDocumentGroupPostResponse $response */
 
-        $content = file_get_contents($response->getFile()->getRealPath());
-
-        unlink($response->getFile()->getRealPath());
-
-        return $content;
+        return $response->getFile();
     }
 }

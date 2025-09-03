@@ -43,7 +43,7 @@ This approach is ideal for applications that want to provide seamless document s
 ### Step 5: Status Tracking
 - User can view the current status of the document group
 - System provides download functionality for completed documents
-- Status page shows signer statuses (timestamps are not available for document groups)
+- Status page shows creation and update timestamps
 
 ## Page Flow Documentation
 
@@ -89,7 +89,8 @@ Form Page → Embedded Sending → Signing Page → Embedded Signing → Status 
 | Recipient addition | Backend SDK recipient management | `updateDocumentGroupRecipients()` in SampleController.php |
 | Embedded sending creation | Backend SDK embedded sending | `createEmbeddedSendingUrl()` in SampleController.php |
 | Signing URL creation | Backend SDK limited token | `createSigningUrl()` and `generateLimitedToken()` in SampleController.php |
-| Status tracking | Backend SDK invite API | `getInviteStatus()` and `getDocumentGroupSignersStatus()` in SampleController.php |
+| Status tracking | Backend SDK status API | `getDocumentGroupStatus()` in SampleController.php |
+| Invite status tracking | Backend SDK invite API | `getInviteStatus()` and `getDocumentGroupSignersStatus()` in SampleController.php |
 | Document download | Backend SDK download API | `downloadDocumentGroup()` and `downloadDocumentGroupFile()` in SampleController.php |
 
 ## Sequence of Function Calls
@@ -153,13 +154,14 @@ This sample requires a Document Group Template (DGT) to be configured in your Si
 
 ### Required Environment Variables
 ```bash
-SIGNNOW_API_BASIC_TOKEN=your_basic_token
-SIGNNOW_API_USERNAME=your_username
-SIGNNOW_API_PASSWORD=your_password
+SIGNNOW_CLIENT_ID=your_client_id
+SIGNNOW_CLIENT_SECRET=your_client_secret
+SIGNNOW_USERNAME=your_username
+SIGNNOW_PASSWORD=your_password
 ```
 
 ### Additional Configuration
-- `signnow.api.user` in config/signnow.php for the preparer email address
+- `signnow.api.signer_email` in config/signnow.php for the preparer email address
 
 ### SDK Classes Used
 - `SignNow\Api\DocumentGroupTemplate\Request\DocumentGroupTemplatePost` - Create document group from template
@@ -193,10 +195,10 @@ SIGNNOW_API_PASSWORD=your_password
 
 5. **Track completion**
    - Monitor the status page for document completion
-   - View individual signer statuses
-   - Download the merged PDF document when ready
+   - View individual signer statuses and timestamps
+   - Download the completed document when ready
    - Refresh status to get latest updates
-   - Parent application is notified when status page loads
+   - Parent application is notified when workflow is complete
 
 ## SDK Integration Details
 
@@ -290,7 +292,7 @@ foreach ($inviteStatusResponse->getInvite()->getSteps() as $step) {
 
 ### Document Download
 ```php
-// Download merged PDF file for entire document group
+// Download merged PDF file
 $downloadRequest = (new DownloadDocumentGroupPost(
     'merged',
     'no'
@@ -312,7 +314,7 @@ return new Response(
 
 ### Parent Application Notification
 ```javascript
-// Notify parent application when status page loads
+// Notify parent application when workflow is complete
 parent.postMessage({type: "SAMPLE_APP_FINISHED"}, location.origin);
 ```
 
@@ -351,7 +353,7 @@ The sample includes comprehensive error handling for:
 - Invite status tracking errors
 - Document download failures
 
-All errors are returned to the frontend with appropriate user-friendly messages. The frontend displays error messages to users and provides retry functionality for failed operations.
+All errors are logged and returned to the frontend with appropriate user-friendly messages. The frontend displays error messages to users and provides retry functionality for failed operations.
 
 ## Security Considerations
 

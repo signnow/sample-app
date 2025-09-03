@@ -29,6 +29,7 @@ use SignNow\Api\DocumentGroup\Response\DocumentGroupRecipientsGet as DocumentGro
 use SignNow\ApiClient;
 use SignNow\Sdk;
 use Symfony\Component\HttpFoundation\Response;
+use SplFileInfo;
 
 class SampleController implements SampleControllerInterface
 {
@@ -181,16 +182,16 @@ class SampleController implements SampleControllerInterface
     private function downloadDocumentGroup(Request $request, ApiClient $apiClient): Response
     {
         $documentGroupId = $request->input('document_group_id');
-        $fileContents = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
 
-        return new Response(
-            $fileContents,
-            200,
-            [
-                'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="final_document_group.pdf"',
-            ]
-        );
+        $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+
+        $content = file_get_contents($file->getRealPath());
+        unlink($file->getRealPath());
+
+        return new Response($content, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"'
+        ]);
     }
 
     private function getDocumentGroup(ApiClient $apiClient, string $documentGroupId): DocumentGroupGetResponse
@@ -273,7 +274,7 @@ class SampleController implements SampleControllerInterface
     /**
      * Download the entire doc group as a merged PDF, once all are signed.
      */
-    private function downloadDocumentGroupFile(ApiClient $apiClient, string $documentGroupId): string
+    private function downloadDocumentGroupFile(ApiClient $apiClient, string $documentGroupId): SplFileInfo
     {
         $downloadRequest = (new DownloadDocumentGroupPost(
             'merged',
@@ -283,9 +284,6 @@ class SampleController implements SampleControllerInterface
         /** @var DownloadDocumentGroupPostResponse $response */
         $response = $apiClient->send($downloadRequest);
 
-        $content = file_get_contents($response->getFile()->getRealPath());
-        unlink($response->getFile()->getRealPath());
-
-        return $content;
+        return $response->getFile();
     }
 }

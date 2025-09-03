@@ -34,6 +34,7 @@ use SignNow\Sdk;
 use Symfony\Component\HttpFoundation\Response;
 use SignNow\Api\DocumentGroupInvite\Response\GroupInviteGet as GroupInviteGetResponse;
 use SignNow\Api\DocumentGroupInvite\Request\GroupInviteGet;
+use SplFileInfo;
 
 class SampleController implements SampleControllerInterface
 {
@@ -135,16 +136,16 @@ class SampleController implements SampleControllerInterface
     private function downloadDocumentGroup(Request $request, ApiClient $apiClient): Response
     {
         $documentGroupId = $request->input('document_group_id');
-        $fileContents = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
 
-        return new Response(
-            $fileContents,
-            200,
-            [
-                'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="final_document_group.pdf"',
-            ]
-        );
+        $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+
+        $content = file_get_contents($file->getRealPath());
+        unlink($file->getRealPath());
+
+        return new Response($content, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"'
+        ]);
     }
 
     private function createDocumentGroupFromTemplate(ApiClient $apiClient): array
@@ -389,7 +390,7 @@ class SampleController implements SampleControllerInterface
     private function downloadDocumentGroupFile(
         ApiClient $apiClient,
         string $documentGroupId
-    ): string {
+    ): SplFileInfo {
         $downloadRequest = (new DownloadDocumentGroupPost(
             'merged',
             'no'
@@ -398,9 +399,6 @@ class SampleController implements SampleControllerInterface
         /** @var DownloadDocumentGroupPostResponse $response */
         $response = $apiClient->send($downloadRequest);
 
-        $content = file_get_contents($response->getFile()->getRealPath());
-        unlink($response->getFile()->getRealPath());
-
-        return $content;
+        return $response->getFile();
     }
 }

@@ -196,11 +196,14 @@
 
                                     if (!res.ok) throw new Error();
 
+                                    // Extract filename from Content-Disposition header
+                                    const filename = res.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'Construction Project Contract.pdf';
+
                                     const blob = await res.blob();
                                     const url = window.URL.createObjectURL(blob);
                                     Object.assign(document.createElement('a'), { 
                                         href: url, 
-                                        download: 'document_group.pdf' 
+                                        download: filename 
                                     }).click();
                                     window.URL.revokeObjectURL(url);
                                 } catch {

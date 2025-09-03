@@ -25,6 +25,7 @@ use SignNow\Api\EmbeddedInvite\Request\Data\InviteCollection;
 use SignNow\Api\EmbeddedInvite\Request\DocumentInviteLinkPost;
 use SignNow\Api\EmbeddedInvite\Response\DocumentInvitePost as DocumentInvitePostResponse;
 use SignNow\Api\EmbeddedInvite\Response\DocumentInviteLinkPost as DocumentInviteLinkPostResponse;
+use SplFileInfo;
 
 /**
  * SampleController for the EVDemoSendingAnd3EmbededSigners application.
@@ -162,10 +163,12 @@ class SampleController implements SampleControllerInterface
             // Retrieve the final signed PDF
             $documentId = $request->input('document_id');
             $file = $this->downloadDocument($apiClient, $documentId);
+            $content = file_get_contents($file->getRealPath());
+            unlink($file->getRealPath());
 
-            return new Response($file, 200, [
+            return new Response($content, 200, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="completed_document.pdf"',
+                'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"',
             ]);
         }
 
@@ -331,18 +334,14 @@ class SampleController implements SampleControllerInterface
     /**
      * Download the fully signed PDF.
      */
-    private function downloadDocument(ApiClient $apiClient, string $documentId): string
+    private function downloadDocument(ApiClient $apiClient, string $documentId): SplFileInfo
     {
         $request = (new DocumentDownloadGet())
             ->withDocumentId($documentId)
             ->withType('collapsed');
 
         $response = $apiClient->send($request);
-        $filePath = $response->getFile()->getRealPath();
-        $content = file_get_contents($filePath);
-        unlink($filePath);
-
-        return $content;
+        return $response->getFile();
     }
 
     /**
