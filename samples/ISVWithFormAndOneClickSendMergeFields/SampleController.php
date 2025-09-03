@@ -35,6 +35,7 @@ use SignNow\Api\Document\Request\Data\TextCollection;
 use SignNow\Api\Document\Request\Data\Text;
 use SignNow\ApiClient;
 use SignNow\Sdk;
+use SplFileInfo;
 use Symfony\Component\HttpFoundation\Response;
 
 class SampleController implements SampleControllerInterface
@@ -130,11 +131,14 @@ class SampleController implements SampleControllerInterface
             return response()->json(['success' => false, 'message' => 'Document group ID is required'], 400);
         }
 
-        $fileContent = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+        $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
 
-        return new Response($fileContent, 200, [
+        $content = file_get_contents($file->getRealPath());
+        unlink($file->getRealPath());
+
+        return new Response($content, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="completed_document.pdf"'
+            'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"'
         ]);
     }
 
@@ -157,12 +161,12 @@ class SampleController implements SampleControllerInterface
 
     /**
      * Process merge fields by adding permanent text elements to documents.
-     * 
+     *
      * This method processes merge fields (CustomerName and CompanyName) by creating
      * permanent text elements that become part of the document itself. These text
      * elements are read-only and cannot be modified by signers, making them
      * permanent part of the document content.
-     * 
+     *
      * The text elements are positioned at the same coordinates as the original
      * merge fields, effectively converting them into non-editable text content.
      */
@@ -179,15 +183,15 @@ class SampleController implements SampleControllerInterface
         foreach ($docGroup->getDocuments() as $docItem) {
             $docId = $docItem->getId();
             $documentData = $this->getDocument($apiClient, $docId);
-            
+
             // Create text collection with customer name and company name
             $textCollection = new TextCollection();
             $fieldCollection = new FieldCollection();
-            
+
             // Get coordinates from existing fields
             $customerNameField = null;
             $companyNameField = null;
-            
+
             foreach ($documentData->getFields() as $field) {
                 /** @var \SignNow\Api\Document\Response\Data\Field $field */
                 $fieldName = $field->getJsonAttributes()->getName();
@@ -197,22 +201,15 @@ class SampleController implements SampleControllerInterface
                     $companyNameField = $field;
                 } else {
                     // Create a new Field object for the request using data from response field
-                    $fieldAttributes = $field->getJsonAttributes();
-                    $requestField = new \SignNow\Api\Document\Request\Data\Field(
-                        x: $fieldAttributes->getX(),
-                        y: $fieldAttributes->getY(),
-                        width: $fieldAttributes->getWidth(),
-                        height: $fieldAttributes->getHeight(),
-                        pageNumber: $fieldAttributes->getPageNumber(),
-                        type: $field->getType(),
-                        required: $fieldAttributes->isRequired(),
-                        role: $field->getRole(),
-                        name: $fieldAttributes->getName()
-                    );
+                    $fieldAttributes = $field->getJsonAttributes()->toArray();
+                    $fieldAttributes['type'] = $field->getType();
+                    $fieldAttributes['role'] = $field->getRole();
+
+                    $requestField = \SignNow\Api\Document\Request\Data\Field::fromArray($fieldAttributes);
                     $fieldCollection->add($requestField);
                 }
             }
-            
+
             // Add customer name text at field coordinates if field exists
             if ($customerNameField) {
                 $fieldCoords = $customerNameField->getJsonAttributes();
@@ -229,7 +226,7 @@ class SampleController implements SampleControllerInterface
                     lineHeight: $fieldCoords->getSize() ?? 25
                 ));
             }
-            
+
             // Add company name text at field coordinates if field exists
             if ($companyNameField) {
                 $fieldCoords = $companyNameField->getJsonAttributes();
@@ -253,7 +250,7 @@ class SampleController implements SampleControllerInterface
                 texts: $textCollection
             );
             $documentPutRequest->withDocumentId($docId);
-            
+
             $apiClient->send($documentPutRequest);
         }
 
@@ -284,7 +281,7 @@ class SampleController implements SampleControllerInterface
                 $emailToUse = $email; // Use form email for "Prepare Contract"
             } elseif ($recipient->getName() === 'Customer to Sign') {
                 // Use config email for "Customer to Sign"
-               $emailToUse = config('signnow.api.signer_email');
+                $emailToUse = config('signnow.api.signer_email');
             }
 
             // Create invite email for this recipient
@@ -296,8 +293,6 @@ class SampleController implements SampleControllerInterface
             );
 
             foreach ($documentGroupGetResponse->getDocuments() as $document) {
-                
-
                 $inviteActions[] = new InviteAction(
                     email: $emailToUse,
                     roleName: $recipient->getName(),
@@ -429,7 +424,7 @@ class SampleController implements SampleControllerInterface
     private function downloadDocumentGroupFile(
         ApiClient $apiClient,
         string $documentGroupId
-    ): string {
+    ): SplFileInfo {
         $downloadRequest = (new DownloadDocumentGroupPost(
             'merged',
             'no'
@@ -438,9 +433,6 @@ class SampleController implements SampleControllerInterface
         /** @var DownloadDocumentGroupPostResponse $response */
         $response = $apiClient->send($downloadRequest);
 
-        $content = file_get_contents($response->getFile()->getRealPath());
-        unlink($response->getFile()->getRealPath());
-
-        return $content;
+        return $response->getFile();
     }
 }

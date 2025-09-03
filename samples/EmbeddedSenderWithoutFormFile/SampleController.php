@@ -19,6 +19,7 @@ use SignNow\Api\Document\Request\DocumentGet;
 use SignNow\Api\Document\Response\DocumentGet as DocumentGetResponse;
 use SignNow\Api\Template\Request\CloneTemplatePost;
 use SignNow\Api\Template\Response\CloneTemplatePost as CloneTemplatePostResponse;
+use SplFileInfo;
 
 class SampleController implements SampleControllerInterface
 {
@@ -58,10 +59,12 @@ class SampleController implements SampleControllerInterface
             return new JsonResponse($statusList);
         } else {
             $file = $this->downloadDocument($apiClient, $documentId);
+            $content = file_get_contents($file->getRealPath());
+            unlink($file->getRealPath());
 
-            return new Response($file, 200, [
+            return new Response($content, 200, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="document.pdf"',
+                'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"',
             ]);
         }
     }
@@ -189,20 +192,14 @@ class SampleController implements SampleControllerInterface
      * Returns:
      * - string: Raw PDF binary data ready to be sent in a download response.
      */
-    private function downloadDocument(ApiClient $apiClient, string $documentId): string
+    private function downloadDocument(ApiClient $apiClient, string $documentId): SplFileInfo
     {
         $downloadDoc = new DocumentDownloadGet();
         $downloadDoc->withDocumentId($documentId);
         $downloadDoc->withType('collapsed');
 
         /** @var DocumentDownloadGetResponse $response */
-        $response = $apiClient->send($downloadDoc);
-        $content = file_get_contents($response->getFile()->getRealPath());
-        $content = file_get_contents($response->getFile()->getRealPath());
-
-        unlink($response->getFile()->getRealPath());
-
-        return $content;
+        return $apiClient->send($downloadDoc)->getFile();
     }
 
     /**

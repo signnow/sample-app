@@ -270,11 +270,14 @@
 
                     if (!response.ok) throw new Error('Error downloading file');
 
+                    // Extract filename from Content-Disposition header
+                    const filename = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'HR Onboarding System.pdf';
+
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'document.pdf';
+                    a.download = filename;
                     document.body.appendChild(a);
                     a.click();
                     a.remove();

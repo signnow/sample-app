@@ -289,11 +289,12 @@ function showFinishPage() {
             });
             if (!response.ok) throw new Error('Download request failed.');
 
+            const filename = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'signed-document.pdf';
             const blob = await response.blob();
             const url  = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href     = url;
-            link.download = 'signed-document.pdf';
+            link.download = filename;
             link.click();
             window.URL.revokeObjectURL(url);
         } catch (error) {

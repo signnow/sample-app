@@ -129,11 +129,13 @@
 
                                         if (!res.ok) throw new Error();
 
+                                        const filename = res.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] || 'document.pdf';
+
                                         const blob = await res.blob();
                                         const url = window.URL.createObjectURL(blob);
                                         Object.assign(document.createElement('a'), {
                                             href: url,
-                                            download: 'document.pdf'
+                                            download: filename
                                         }).click();
                                         window.URL.revokeObjectURL(url);
                                     } catch {
