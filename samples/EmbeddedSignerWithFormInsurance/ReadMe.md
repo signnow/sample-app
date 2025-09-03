@@ -1,4 +1,3 @@
-```markdown
 # Embedded Signer Sample Application: EmbeddedSignerWithFormInsurance
 
 ## Use Case Overview
@@ -90,4 +89,3 @@ ____
 ## Disclaimer
 
 This sample application is for **demonstration purposes only**. It uses a static template hosted in our demo SignNow account. The flow should be adapted and properly secured before being deployed in a live environment.
-```
