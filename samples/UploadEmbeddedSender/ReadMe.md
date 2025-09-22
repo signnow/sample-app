@@ -1,4 +1,4 @@
-# Embedded Sender without Form (File)
+# Upload Embedded Sender
 
 This sample demonstrates uploading a PDF file to SignNow and creating an embedded sending link for document preparation and sending.
 
