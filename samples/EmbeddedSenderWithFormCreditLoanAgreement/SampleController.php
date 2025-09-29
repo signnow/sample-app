@@ -20,6 +20,7 @@ use SignNow\Api\DocumentField\Request\Data\Field as FieldValue;
 use SignNow\Api\DocumentField\Request\Data\FieldCollection as FieldValueCollection;
 use SignNow\Api\EmbeddedSending\Request\DocumentEmbeddedSendingLinkPost as DocumentEmbeddedSendingLinkPostRequest;
 use SignNow\Api\EmbeddedSending\Response\DocumentEmbeddedSendingLinkPost as DocumentEmbeddedSendingLinkPostResponse;
+use SplFileInfo;
 
 class SampleController implements SampleControllerInterface
 {
@@ -103,9 +104,12 @@ class SampleController implements SampleControllerInterface
         }
 
         $file = $this->downloadDocument($apiClient, $request->get('document_id'));
-        return new Response($file, 200, [
+        $content = file_get_contents($file->getRealPath());
+        unlink($file->getRealPath());
+
+        return new Response($content, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="result.pdf"',
+            'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"',
         ]);
     }
 
@@ -119,27 +123,23 @@ class SampleController implements SampleControllerInterface
      * Method behavior:
      * 1. Constructs a DocumentDownloadGet request for the specified document ID with type "collapsed".
      * 2. Sends the request via the authenticated SignNow API client.
-     * 3. Reads the temporary PDF file into memory and removes the file from the filesystem.
+     * 3. Returns the SplFileInfo object for the temporary PDF file.
      *
      * Parameters:
      * - ApiClient $apiClient: Authenticated SignNow client for API communication.
      * - string $documentId: Unique identifier of the document to download.
      *
      * Returns:
-     * - string: Raw PDF binary data ready for inclusion in an HTTP response.
+     * - SplFileInfo: File object containing the PDF data.
      */
-    private function downloadDocument(ApiClient $apiClient, string $documentId): string
+    private function downloadDocument(ApiClient $apiClient, string $documentId): SplFileInfo
     {
         $request = (new DocumentDownloadGet())
             ->withDocumentId($documentId)
             ->withType('collapsed');
 
         $response = $apiClient->send($request);
-        $filePath = $response->getFile()->getRealPath();
-        $content = file_get_contents($filePath);
-        unlink($filePath);
-
-        return $content;
+        return $response->getFile();
     }
 
     /**
