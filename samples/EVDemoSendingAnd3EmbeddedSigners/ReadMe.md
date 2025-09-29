@@ -1,4 +1,4 @@
-# EVDemoSendingAnd3EmbededSigners — PHP Sample
+# EVDemoSendingAnd3EmbeddedSigners — PHP Sample
 
 ## What this sample demonstrates
 

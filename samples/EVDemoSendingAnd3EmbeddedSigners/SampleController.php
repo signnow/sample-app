@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Samples\EVDemoSendingAnd3EmbededSigners;
+namespace Samples\EVDemoSendingAnd3EmbeddedSigners;
 
 use App\Http\Controllers\SampleControllerInterface;
 use Illuminate\Http\JsonResponse;
@@ -28,7 +28,7 @@ use SignNow\Api\EmbeddedInvite\Response\DocumentInviteLinkPost as DocumentInvite
 use SplFileInfo;
 
 /**
- * SampleController for the EVDemoSendingAnd3EmbededSigners application.
+ * SampleController for the EVDemoSendingAnd3EmbeddedSigners application.
  *
  * Demonstrates a headless sending workflow from a single template (with roles:
  * "Contract Preparer," "Recipient 1," "Recipient 2") followed by three sequential
@@ -40,13 +40,13 @@ class SampleController implements SampleControllerInterface
     private const TEMPLATE_ID = '34009a3d21b5468d86d886cd715658c453335c61';
 
     /**
-     * Handle GET requests for the EVDemoSendingAnd3EmbededSigners demo.
+     * Handle GET requests for the EVDemoSendingAnd3EmbeddedSigners demo.
      *
      * Displays the initial form where user inputs Agent, Signer1, Signer2 details.
      */
     public function handleGet(Request $request): Response
     {
-        // Renders the Blade template `EVDemoSendingAnd3EmbededSigners::index`.
+        // Renders the Blade template `EVDemoSendingAnd3EmbeddedSigners::index`.
         // This view should include a form with fields:
         //  - Agent Name
         //  - Agent Email
@@ -56,7 +56,7 @@ class SampleController implements SampleControllerInterface
         //  - Signer 2 Email
         // and a button to POST to this controller with action="start-workflow".
         return new Response(
-            view('EVDemoSendingAnd3EmbededSigners::index')->render(),
+            view('EVDemoSendingAnd3EmbeddedSigners::index')->render(),
             200,
             ['Content-Type' => 'text/html']
         );
@@ -327,7 +327,7 @@ class SampleController implements SampleControllerInterface
         //   - nextStep = "signer1" => direct the user to request the link for Signer 1
         //   - nextStep = "signer2"
         //   - nextStep = "finish" => prompt user to download
-        return config('app.url') . '/samples/EVDemoSendingAnd3EmbededSigners?document_id='
+        return config('app.url') . '/samples/EVDemoSendingAnd3EmbeddedSigners?document_id='
             . $documentId . '&step=' . $nextStep;
     }
 
