@@ -32,7 +32,6 @@ use SignNow\Api\DocumentGroup\Request\Data\Recipient\DocumentCollection
 use SignNow\ApiClient;
 use SignNow\Sdk;
 use Symfony\Component\HttpFoundation\Response;
-use SplFileInfo;
 use SignNow\Api\Auth\Request\TokenPost;
 use SignNow\Api\Auth\Response\TokenPost as TokenPostResponse;
 use SignNow\Api\DocumentGroupInvite\Response\GroupInviteGet as GroupInviteGetResponse;
@@ -156,16 +155,16 @@ class SampleController implements SampleControllerInterface
     private function downloadDocumentGroup(Request $request, ApiClient $apiClient): Response
     {
         $documentGroupId = $request->input('document_group_id');
+        $fileContents = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
 
-        $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
-
-        $content = file_get_contents($file->getRealPath());
-        unlink($file->getRealPath());
-
-        return new Response($content, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $file->getFilename() . '"'
-        ]);
+        return new Response(
+            $fileContents,
+            200,
+            [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="final_document_group.pdf"',
+            ]
+        );
     }
 
     private function createDocumentGroupFromTemplate(ApiClient $apiClient): array
@@ -466,7 +465,7 @@ class SampleController implements SampleControllerInterface
     private function downloadDocumentGroupFile(
         ApiClient $apiClient,
         string $documentGroupId
-    ): SplFileInfo {
+    ): string {
         $downloadRequest = (new DownloadDocumentGroupPost(
             'merged',
             'no'
@@ -475,6 +474,9 @@ class SampleController implements SampleControllerInterface
         /** @var DownloadDocumentGroupPostResponse $response */
         $response = $apiClient->send($downloadRequest);
 
-        return $response->getFile();
+        $content = file_get_contents($response->getFile()->getRealPath());
+        unlink($response->getFile()->getRealPath());
+
+        return $content;
     }
 }
