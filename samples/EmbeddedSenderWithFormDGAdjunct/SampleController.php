@@ -235,21 +235,21 @@ class SampleController implements SampleControllerInterface
                 $updatedRecipients[] = new Recipient(
                     name: $recipientName,
                     email: $preparerEmail,
-                    order: $recipient->getOrder(),
+                    order: 1,
                     documents: $requestDocumentCollection
                 );
             } elseif ($recipientName === 'Recipient 2') {
                 $updatedRecipients[] = new Recipient(
                     name: $recipientName,
                     email: $customerEmail,
-                    order: $recipient->getOrder(),
+                    order: 2,
                     documents: $requestDocumentCollection
                 );
             } else {
                 $updatedRecipients[] = new Recipient(
                     name: $recipientName,
                     email: '',
-                    order: $recipient->getOrder(),
+                    order: 3,
                     documents: $requestDocumentCollection
                 );
             }
