@@ -4,11 +4,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EVDemoSendingAnd3EmbededSigners</title>
+    <title>EVDemoSendingAnd3EmbeddedSigners</title>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
     <link rel="stylesheet" href="/css/styles.css">
-    <meta name="description" content="SignNow EVDemoSendingAnd3EmbededSigners">
+    <meta name="description" content="SignNow EVDemoSendingAnd3EmbeddedSigners">
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
@@ -146,7 +146,7 @@ function showStartForm() {
         const signer2_email  = document.getElementById('signer2_email').value;
 
         try {
-            const response = await fetch('/api/samples/EVDemoSendingAnd3EmbededSigners', {
+            const response = await fetch('/api/samples/EVDemoSendingAnd3EmbeddedSigners', {
                 method : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body   : JSON.stringify({
@@ -224,7 +224,7 @@ async function showSigningPrompt(step) {
 
         // We need to call "next-signer" to get the link
         try {
-            const response = await fetch('/api/samples/EVDemoSendingAnd3EmbededSigners', {
+            const response = await fetch('/api/samples/EVDemoSendingAnd3EmbeddedSigners', {
                 method : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body   : JSON.stringify({
@@ -279,7 +279,7 @@ function showFinishPage() {
             return;
         }
         try {
-            const response = await fetch('/api/samples/EVDemoSendingAnd3EmbededSigners', {
+            const response = await fetch('/api/samples/EVDemoSendingAnd3EmbeddedSigners', {
                 method : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body   : JSON.stringify({
