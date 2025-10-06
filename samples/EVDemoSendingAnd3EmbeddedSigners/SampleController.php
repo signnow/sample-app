@@ -38,6 +38,7 @@ use SplFileInfo;
 class SampleController implements SampleControllerInterface
 {
     private const TEMPLATE_ID = '34009a3d21b5468d86d886cd715658c453335c61';
+    private const TARGET_SAMPLE = 'samples/EVDemoSendingAnd3EmbeddedSigners';
 
     /**
      * Handle GET requests for the EVDemoSendingAnd3EmbeddedSigners demo.
@@ -46,6 +47,44 @@ class SampleController implements SampleControllerInterface
      */
     public function handleGet(Request $request): Response
     {
+        if ($request->boolean('redirect')) {
+            $queryParams = $request->query->all();
+            unset($queryParams['redirect']);
+
+            $targetUrl = $this->buildSampleUrl($queryParams);
+            $encodedUrl = json_encode($targetUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            if ($encodedUrl === false) {
+                $encodedUrl = '"' . addslashes($targetUrl) . '"';
+            }
+
+            $html = sprintf(
+                <<<HTML
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Redirecting…</title>
+</head>
+<body>
+<script>
+    (function () {
+        var target = %s;
+        if (window.top && window.top !== window) {
+            window.top.location.href = target;
+        } else {
+            window.location.href = target;
+        }
+    })();
+</script>
+</body>
+</html>
+HTML,
+                $encodedUrl
+            );
+
+            return new Response($html, 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+        }
+
         // Renders the Blade template `EVDemoSendingAnd3EmbeddedSigners::index`.
         // This view should include a form with fields:
         //  - Agent Name
@@ -327,8 +366,27 @@ class SampleController implements SampleControllerInterface
         //   - nextStep = "signer1" => direct the user to request the link for Signer 1
         //   - nextStep = "signer2"
         //   - nextStep = "finish" => prompt user to download
-        return config('app.url') . '/samples/EVDemoSendingAnd3EmbeddedSigners?document_id='
-            . $documentId . '&step=' . $nextStep;
+        return $this->buildSampleUrl([
+            'document_id' => $documentId,
+            'step' => $nextStep,
+            'redirect' => 1,
+        ]);
+    }
+
+    private function buildSampleUrl(array $params = []): string
+    {
+        $baseUrl = rtrim((string)config('app.url'), '/') . '/' . self::TARGET_SAMPLE;
+
+        $filtered = array_filter(
+            $params,
+            static fn ($value) => $value !== null
+        );
+
+        if ($filtered !== []) {
+            $baseUrl .= '?' . http_build_query($filtered);
+        }
+
+        return $baseUrl;
     }
 
     /**
