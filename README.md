@@ -133,6 +133,18 @@ Example: @signnow Generate a Java code example for sending a document group to t
 Make sure you're using `@signnow` in the Copilot chat and that the extension is installed and authorized.
 ____
 
+# Explore SignNow developer tools
+## [**API reference**](https://docs.signnow.com/docs/signnow/reference)
+Get technical details about SignNow API requests, parameters, code examples, and possible errors. Send API calls directly from the documentation using the **Try it** console.
+## [**SDKs**](https://docs.signnow.com/docs/signnow/sdk)
+Use official SignNow API libraries and sample code to integrate advanced eSignature functionality into your software.
+## [**GitHub Copilot extension**](https://github.com/apps/signnow)
+Develop eSignature integrations directly in GitHub using AI-powered code suggestions. Copilot recommends API calls and code snippets that align with SignNow API guidelines.
+## [Postman collection](https://www.postman.com/signnow-api/signnow-public-collection/overview)
+Explore and test SignNow API requests in Postman. Use pre-configured collections to quickly start building and debugging your integrations.
+
+____
+
 ## License
 
 This repository is under the MIT license. You are free to use the code of this application as a skeleton for your application. For more information, see [LICENSE](./LICENSE).
