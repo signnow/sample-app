@@ -27,6 +27,7 @@ use SignNow\Api\EmbeddedSending\Response\DocumentGroupEmbeddedSendingLinkPost as
 use SignNow\Api\DocumentGroup\Request\DocumentGroupRecipientsGet;
 use SignNow\Api\DocumentGroup\Response\DocumentGroupRecipientsGet as DocumentGroupRecipientsGetResponse;
 use SignNow\ApiClient;
+use SignNow\Exception\SignNowApiException;
 use SignNow\Sdk;
 use Symfony\Component\HttpFoundation\Response;
 use SplFileInfo;
@@ -48,10 +49,14 @@ class SampleController implements SampleControllerInterface
     {
         $action = $request->input('action');
 
-        $sdk = new Sdk();
-        $apiClient = $sdk->build()
-            ->authenticate()
-            ->getApiClient();
+        try {
+            $sdk = new Sdk();
+            $apiClient = $sdk->build()
+                ->authenticate()
+                ->getApiClient();
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
 
         switch ($action) {
             case 'upload_and_create_dg':
@@ -67,26 +72,30 @@ class SampleController implements SampleControllerInterface
 
     private function uploadAndCreateDocumentGroup(Request $request, ApiClient $apiClient): JsonResponse
     {
-        // 1. Upload PDF file to SignNow
-        $documentResponse = $this->uploadDocument($apiClient);
-        if (!$documentResponse['success']) {
-            return response()->json($documentResponse, 500);
-        }
+        try {
+            // 1. Upload PDF file to SignNow
+            $documentResponse = $this->uploadDocument($apiClient);
+            if (!$documentResponse['success']) {
+                return response()->json($documentResponse, 500);
+            }
 
-        $documentId = $documentResponse['document_id'];
+            $documentId = $documentResponse['document_id'];
 
-        // 2. Create Document Group from uploaded document
-        $documentGroupResponse = $this->createDocumentGroup($apiClient, $documentId);
-        if (!$documentGroupResponse['success']) {
-            return response()->json($documentGroupResponse, 500);
-        }
+            // 2. Create Document Group from uploaded document
+            $documentGroupResponse = $this->createDocumentGroup($apiClient, $documentId);
+            if (!$documentGroupResponse['success']) {
+                return response()->json($documentGroupResponse, 500);
+            }
 
-        $documentGroupId = $documentGroupResponse['document_group_id'];
+            $documentGroupId = $documentGroupResponse['document_group_id'];
 
-        // 3. Create embedded sending link
-        $embeddedSendingResponse = $this->createEmbeddedSendingUrl($apiClient, $documentGroupId);
-        if (!$embeddedSendingResponse['success']) {
-            return response()->json($embeddedSendingResponse, 500);
+            // 3. Create embedded sending link
+            $embeddedSendingResponse = $this->createEmbeddedSendingUrl($apiClient, $documentGroupId);
+            if (!$embeddedSendingResponse['success']) {
+                return response()->json($embeddedSendingResponse, 500);
+            }
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
 
         return response()->json([
@@ -175,7 +184,11 @@ class SampleController implements SampleControllerInterface
     private function getInviteStatus(Request $request, ApiClient $apiClient): JsonResponse
     {
         $documentGroupId = $request->input('document_group_id');
-        $signers = $this->getDocumentGroupSignersStatus($apiClient, $documentGroupId);
+        try {
+            $signers = $this->getDocumentGroupSignersStatus($apiClient, $documentGroupId);
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
         return response()->json($signers);
     }
 
@@ -183,7 +196,11 @@ class SampleController implements SampleControllerInterface
     {
         $documentGroupId = $request->input('document_group_id');
 
-        $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+        try {
+            $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
 
         $content = file_get_contents($file->getRealPath());
         unlink($file->getRealPath());

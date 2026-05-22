@@ -30,6 +30,7 @@ use SignNow\Api\DocumentGroup\Request\Data\Recipient\Document as RecipientDocume
 use SignNow\Api\DocumentGroup\Request\Data\Recipient\DocumentCollection
     as RecipientDocumentCollection;
 use SignNow\ApiClient;
+use SignNow\Exception\SignNowApiException;
 use SignNow\Sdk;
 use Symfony\Component\HttpFoundation\Response;
 use SplFileInfo;
@@ -60,10 +61,14 @@ class SampleController implements SampleControllerInterface
     {
         $action = $request->input('action');
 
-        $sdk = new Sdk();
-        $apiClient = $sdk->build()
-            ->authenticate()
-            ->getApiClient();
+        try {
+            $sdk = new Sdk();
+            $apiClient = $sdk->build()
+                ->authenticate()
+                ->getApiClient();
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
 
         switch ($action) {
             case 'prepare_dg':
@@ -88,37 +93,41 @@ class SampleController implements SampleControllerInterface
             return response()->json(['success' => false, 'message' => 'Name and email are required'], 400);
         }
 
-        // 1. Create Document Group from Template
-        $dgResponse = $this->createDocumentGroupFromTemplate($apiClient);
-        if (!$dgResponse['success']) {
-            return response()->json($dgResponse, 500);
-        }
+        try {
+            // 1. Create Document Group from Template
+            $dgResponse = $this->createDocumentGroupFromTemplate($apiClient);
+            if (!$dgResponse['success']) {
+                return response()->json($dgResponse, 500);
+            }
 
-        $documentGroupId = $dgResponse['document_group_id'];
+            $documentGroupId = $dgResponse['document_group_id'];
 
-        // 2. Update document fields with names
-        $updateFieldsResponse = $this->updateDocumentFields($apiClient, $documentGroupId, $name);
-        if (!$updateFieldsResponse['success']) {
-            return response()->json($updateFieldsResponse, 500);
-        }
+            // 2. Update document fields with names
+            $updateFieldsResponse = $this->updateDocumentFields($apiClient, $documentGroupId, $name);
+            if (!$updateFieldsResponse['success']) {
+                return response()->json($updateFieldsResponse, 500);
+            }
 
-        // 3. Add recipients to Document Group with different emails for different roles
-        $customerEmail = $email; // Email from form for "Customer to Sign"
-        $preparerEmail = config('signnow.api.user'); // Email from config for "Prepare Contract"
-        $addRecipientsResponse = $this->updateDocumentGroupRecipients(
-            $apiClient,
-            $documentGroupId,
-            $customerEmail,
-            $preparerEmail
-        );
-        if (!$addRecipientsResponse['success']) {
-            return response()->json($addRecipientsResponse, 500);
-        }
+            // 3. Add recipients to Document Group with different emails for different roles
+            $customerEmail = $email; // Email from form for "Customer to Sign"
+            $preparerEmail = config('signnow.api.user'); // Email from config for "Prepare Contract"
+            $addRecipientsResponse = $this->updateDocumentGroupRecipients(
+                $apiClient,
+                $documentGroupId,
+                $customerEmail,
+                $preparerEmail
+            );
+            if (!$addRecipientsResponse['success']) {
+                return response()->json($addRecipientsResponse, 500);
+            }
 
-        // 4. Create embedded sending link
-        $embeddedSendingResponse = $this->createEmbeddedSendingUrl($apiClient, $documentGroupId);
-        if (!$embeddedSendingResponse['success']) {
-            return response()->json($embeddedSendingResponse, 500);
+            // 4. Create embedded sending link
+            $embeddedSendingResponse = $this->createEmbeddedSendingUrl($apiClient, $documentGroupId);
+            if (!$embeddedSendingResponse['success']) {
+                return response()->json($embeddedSendingResponse, 500);
+            }
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
 
         return response()->json([
@@ -132,10 +141,14 @@ class SampleController implements SampleControllerInterface
     {
         $documentGroupId = $request->input('document_group_id');
 
-        // Create signing link with limited token
-        $signingLinkResponse = $this->createSigningLink($apiClient, $documentGroupId);
-        if (!$signingLinkResponse['success']) {
-            return response()->json($signingLinkResponse, 500);
+        try {
+            // Create signing link with limited token
+            $signingLinkResponse = $this->createSigningLink($apiClient, $documentGroupId);
+            if (!$signingLinkResponse['success']) {
+                return response()->json($signingLinkResponse, 500);
+            }
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
 
         return response()->json([
@@ -149,7 +162,11 @@ class SampleController implements SampleControllerInterface
     private function getInviteStatus(Request $request, ApiClient $apiClient): JsonResponse
     {
         $documentGroupId = $request->input('document_group_id');
-        $signers = $this->getDocumentGroupSignersStatus($apiClient, $documentGroupId);
+        try {
+            $signers = $this->getDocumentGroupSignersStatus($apiClient, $documentGroupId);
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
         return response()->json($signers);
     }
 
@@ -157,7 +174,11 @@ class SampleController implements SampleControllerInterface
     {
         $documentGroupId = $request->input('document_group_id');
 
-        $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+        try {
+            $file = $this->downloadDocumentGroupFile($apiClient, $documentGroupId);
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
 
         $content = file_get_contents($file->getRealPath());
         unlink($file->getRealPath());

@@ -2,7 +2,7 @@
 
 [![PHP Version](https://img.shields.io/badge/php->=8.2-blue)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/laravel-10-cyan)](https://laravel.com/)
-[![signNow PHP SDK](https://img.shields.io/badge/signNow_SDK-2.2-light)](https://github.com/signnow/SignNowPHPSDK)
+[![signNow PHP SDK](https://img.shields.io/badge/signNow_SDK-3.x-light)](https://github.com/signnow/SignNowPHPSDK)
 [![Licence](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 ## About
 
@@ -37,7 +37,7 @@ Configure the following variables to ensure the application’s proper functiona
 | SIGNNOW_API_PASSWORD    | `*****`                                    | Your signNow account password.                                                                 |
 | SIGNNOW_SIGNER_EMAIL    | `signer@mailer.com`                        | The email address of the person who is supposed to sign a document.                            |
 
-View the entire configuration file, including standard Laravel variables, [here](./.env.example).
+View the entire configuration file, including standard Laravel variables, [here](./.env.src).
 
 ## Get Started
 1. Clone the repository
