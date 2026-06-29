@@ -1,150 +1,189 @@
-# signNow Sample App
+# SignNow PHP Sample App
 
-[![PHP Version](https://img.shields.io/badge/php->=8.2-blue)](https://php.net/)
-[![Laravel Version](https://img.shields.io/badge/laravel-10-cyan)](https://laravel.com/)
-[![signNow PHP SDK](https://img.shields.io/badge/signNow_SDK-3.x-light)](https://github.com/signnow/SignNowPHPSDK)
-[![Licence](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-## About
+[![PHP](https://img.shields.io/badge/php-8.2-blue)](https://www.php.net/)
+[![Laravel](https://img.shields.io/badge/laravel-10-cyan)](https://laravel.com/)
+[![SignNow SDK](https://img.shields.io/badge/SignNow_SDK-3.x-light)](https://github.com/signnow/SignNowPHPSDK)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-This sample application demonstrates how the signNow API and PHP SDK can be used to construct applications with signing flows. This sample application operates using the following features:
+A Laravel 10 application demonstrating the SignNow API via the official [`signnow/api-php-sdk`](https://github.com/signnow/SignNowPHPSDK) package.
 
-* [Authentication](https://docs.signnow.com/docs/signnow/j6jxdlizr86se-generate-access-token)
-* [Upload document](https://docs.signnow.com/docs/signnow/i4216w3e1jv3p-upload-document)
-* [Add fillable fields](https://docs.signnow.com/docs/signnow/xsttpdx7r60iw-edit-document)
-* [Embedded signing](https://docs.signnow.com/docs/signnow/document-embedded-signing/operations/create-a-v-2-document-embedded-invite)
+## Quick Start
 
-Try using the sample application for testing purposes or use it as a skeleton for your own application. To create an application that generates legally binding signatures, you’ll need a signNow subscription.
+### 1. Enter the directory
 
-## Prerequisites
+```bash
+cd SampleApps/php-sample-app
+```
 
-* Create a signNow account:
-   * For integration purposes, you need a signNow account with a paid subscription.
-   * For testing purposes, you can [create](https://www.signnow.com/developers) a signNow developer account.
-* At the [API Dashboard](https://app.signnow.com/webapp/api-dashboard/keys), create an application.
-* Use your signNow credentials and basic authorization token in your config file `.env`.
+### 2. Configure environment
 
-## Environment variables
+```bash
+cp .env.example .env
+```
 
-The configuration file is located in the project directory with the common name `.env`.
+Edit `.env` and fill in your SignNow credentials:
 
-Configure the following variables to ensure the application’s proper functionality.
+| Variable | Example | Description |
+|---|---|---|
+| `SN_API_HOST` | `https://api.signnow.com` | Production or sandbox URL |
+| `SN_API_BASIC_TOKEN` | `c2lnbk5vdy4...` | Base64 token from [API Dashboard](https://app.signnow.com/webapp/api-dashboard/keys) |
+| `SN_API_USER` | `you@example.com` | Your SignNow account email |
+| `SN_API_PASSWORD` | `••••••` | Your SignNow account password |
+| `SN_SIGNER_EMAIL` | `signer@example.com` | Default embedded signer email |
 
-| Variable           | Example                                    | Description                                                                                    |
-|--------------------|--------------------------------------------|------------------------------------------------------------------------------------------------|
-| SIGNNOW_API_HOST        | `https://api.signnow.com`                  | signNow API host                                                                               |
-| SIGNNOW_API_BASIC_TOKEN | `c2lnbk5vdyBBUEkgc2FtcGxlIEFwcCB2MS4wCg==` | Find your basic token at the [API Dashboard](https://app.signnow.com/webapp/api-dashboard/keys). |
-| SIGNNOW_API_USERNAME        | `user@mailer.com`                          | The email address of the document signer.                                |
-| SIGNNOW_API_PASSWORD    | `*****`                                    | Your signNow account password.                                                                 |
-| SIGNNOW_SIGNER_EMAIL    | `signer@mailer.com`                        | The email address of the person who is supposed to sign a document.                            |
+### 3. Run with Docker (recommended)
 
-View the entire configuration file, including standard Laravel variables, [here](./.env.src).
+```bash
+make build    # build Docker image
+make setup    # install dependencies + generate Laravel key
+make up       # start the container
+```
 
-## Get Started
-1. Clone the repository
+App is available at `http://localhost:8080`. Stop with `make down`.
+
+Other useful targets:
+
+```bash
+make clear        # clear Laravel caches
+make setup-env    # interactive credential prompt
+```
+
+### 4. Run with Docker (without make)
+
+```bash
+docker compose build
+docker compose up -d
+docker compose exec app composer install
+docker compose exec app php artisan key:generate
+```
+
+### 5. Run locally (no Docker)
+
+```bash
+composer install
+php artisan key:generate
+php artisan serve --port=8080
+```
+
+Requires PHP 8.2+ with the `curl`, `mbstring`, `openssl`, and `xml` extensions.
+
+### 6. Open a sample
+
+```
+http://localhost:8080/samples/EmbeddedSignerConsentForm
+```
+
+`http://localhost:8080/samples` lists all available samples.
+
+## Available Samples (20)
+
+| Sample | Description |
+|---|---|
+| EmbeddedSignerConsentForm | Consent form with single embedded signer |
+| EmbeddedSenderWithoutFormFile | Sales proposal — embedded sender |
+| EmbeddedSenderWithFormCreditLoanAgreement | Credit loan agreement |
+| EmbeddedSignerConsumerServices | Veterinary intake form |
+| EmbeddedSignerPatientIntakeForm | Patient intake (healthcare) |
+| EmbeddedSignerWithFormInsurance | Insurance claim form |
+| MedicalInsuranceClaimForm | Medical insurance claim |
+| EmbeddedEditingAndSigningDG | Document generation: edit + sign |
+| EmbeddedSenderWithFormAndFirstSigner | Sender is also first signer |
+| EmbeddedSenderWithFormDG | Document generation variant |
+| EmbeddedSenderWithFormDGAdjunct | DG adjunct form |
+| EmbeddedSenderWithFormDGConstr | DG construction form |
+| ISVWithFormAndOneClickSendBasicPrefill | ISV one-click send, basic prefill |
+| ISVWithFormAndOneClickSendMergeFields | ISV one-click send, merge fields |
+| HROnboardingSystem | HR onboarding multi-document flow |
+| UploadEmbeddedSender | Upload PDF + embedded sender |
+| PrefillAndEmbeddedSendingAgreement | Prefill + embedded send |
+| PrefillAndOneClickSendingAgreement | Prefill + one-click send |
+| EVDemoSendingAnd3EmbeddedSigners | Real estate: 3 sequential embedded signers |
+| UploadEmbeddedEditingAndInvite | Upload PDF, embedded edit, invite |
+
+## Project Structure
+
+```
+app/Http/Controllers/
+  RoutingController.php         GET /samples/:name, POST /api/samples/:name
+  SampleControllerInterface.php Sample contract (handleGet + handlePost)
+  ControllerFactory.php         Loads sample controllers by name
+app/Services/
+  SamplesProvider.php           Validates names against whitelist
+routes/
+  web.php                       Route definitions
+samples/
+  <SampleName>/
+    SampleController.php        Implements SampleControllerInterface
+    Meta.json                   Sample metadata (title, description)
+    index.blade.php             Blade template served on GET /samples/<SampleName>
+resources/views/                Shared Blade layouts
+static/                         Shared CSS, JS, images
+samples_witelist.json           Authorised sample names
+```
+
+## Routing
+
+| Method | Path | Handler |
+|---|---|---|
+| GET | `/samples/{name}` | `samples/<name>/SampleController.handleGet` |
+| POST | `/api/samples/{name}` | `samples/<name>/SampleController.handlePost` |
+| GET | `/css/*`, `/img/*`, etc. | Shared static files |
+
+Sample names must match `^[a-zA-Z0-9_]+$` and must be listed in `samples_witelist.json`. Unlisted names → 404.
+
+## Add a New Sample
+
+1. `mkdir samples/MyNewSample`
+2. Add `"MyNewSample"` to `samples_witelist.json`.
+3. Create `samples/MyNewSample/Meta.json`:
+   ```json
+   { "title": "My New Sample", "description": "What it demonstrates." }
    ```
-   git clone git@github.com:signnow/sample-app.git
+4. Create `samples/MyNewSample/SampleController.php`:
+   ```php
+   <?php
+   namespace Samples\MyNewSample;
+
+   use App\Http\Controllers\SampleControllerInterface;
+   use Illuminate\Http\Request;
+
+   class SampleController implements SampleControllerInterface
+   {
+       public function handleGet(Request $request) { /* return view or JSON */ }
+       public function handlePost(Request $request) { /* handle POST actions */ }
+   }
    ```
+5. Create `samples/MyNewSample/index.blade.php`.
 
-2. Build a docker image using the following command:
-   
-   ```
-   make build
-   ```
+## Tests
 
-3. Start the `signnow-sample-app` docker container using the following command:
+No automated tests are included. The application can be verified manually by running each sample end-to-end.
 
-   ```
-   make up
-   ```
+## SDK Notes
 
-4. Install dependencies and generate a Laravel application key using the following command:
+Known quirks in `signnow/api-php-sdk` 3.x that affect this codebase:
 
-   ```
-   make setup
-   ```
-   This command will also prepare your configuration `.env` file and prompt you to enter all the required parameters. Make sure that you have the following data at hand: 
-   - Basic token for your application.
-   - The email address that your signNow account is registered with.
-   - Your signNow password.
-   - The email address of the person who is supposed to sign a document.
-5. Clear the cache using the following command (optionally):
+**`To` constructor parameter order** — `new To(email, roleId, role, order, subject, message)`. Note that `roleId` (the `unique_id` from the roles array) and `role` (the role name string) are separate parameters in positions 2 and 3.
 
-   ```
-   make clear
-   ```
-6. Open a browser to [localhost:8080](http://localhost:8080).
+**`SendInvitePost` constructor** — `new SendInvitePost(documentId, ToCollection, from, subject, message)`. The sender email (`from`) must be the authenticated account's email.
 
-## Behind the scenes
-Technology:
-* PHP 8.2
-* Laravel 10
-* signNow API PHP SDK 2.2
-* Docker
-* Native JavaScript
-* HTML
-* Bootstrap CSS Framework
+**Embedded sending vs embedded signing mode** — `DocumentEmbeddedSendingLinkPost` takes a `mode` parameter: `'document'` opens the embedded sender UI; `'invite'` opens the embedded signer UI. Passing the wrong mode is a silent failure — the link works but shows the wrong interface.
 
-The application contains both backend and tiny frontend components. The frontend consists of a web form where you can enter the first and last names of your signer and a comment.
+**`DocumentGet` response roles** — `getRoles()` returns an array where each role has `getName()` (display name) and `getUniqueId()` (the ID to pass as `roleId` in invites). Do not confuse the two.
 
-After the form is submitted, the backend uploads the PDF file to signNow using your credentials provided with the `.env` configuration file. The backend also adds the first and last names and comment fields to the document. The backend then creates an embedded invite to sign your document and generates a link for the invite. This type of invite is called 'embedded' because you can integrate it into your website or mobile application.
+## Tech Stack
 
-The frontend receives the invite link and embeds the signNow document editor into a website or app using an `<iframe/>` tag. Using this method, the signing session is built into the website. You can also customize the signing experience by using the [branding feature](https://docs.signnow.com/docs/signnow/branches/v1.2/guides-branding). All backend operations are performed using the signNow PHP SDK.
+- PHP 8.2
+- Laravel 10
+- `signnow/api-php-sdk` 3.x (from Packagist)
+- Guzzle 7.9 (HTTP client, pulled in by SDK)
+- Docker: `php:8.2-fpm` + nginx
 
-## More information
+## GitHub Copilot Extension
 
-| Topic                 | URL                                        |
-|-----------------------|--------------------------------------------|
-| signNow website       | <https://www.signnow.com/>                 |
-| PHP SDK               | <https://github.com/signnow/SignNowPHPSDK> |
-| signNow documentation | <https://docs.signnow.com/>                |
-
-____
-
-## Ready to build eSignature integrations with SignNow API? Get the SignNow extension for GitHub Copilot
-
-Use AI-powered code suggestions to generate SignNow API code snippets in your IDE with GitHub Copilot. Get examples for common integration tasks—from authentication and sending documents for signature to handling webhooks, and building branded workflows.
-
-###  **🚀 Why use SignNow with GitHub Copilot**
-
-* **Relevant code suggestions**: Get AI-powered, up-to-date code snippets for SignNow API calls. All examples reflect the latest API capabilities and follow current best practices.
-* **Faster development**: Reduce time spent searching documentation.
-* **Fewer mistakes**: Get context-aware guidance aligned with the SignNow API.
-* **Smooth onboarding**: Useful for both new and experienced developers working with the API.
-
-### **Prerequisites:**
-
-1\. GitHub Copilot installed and enabled.  
-2\. SignNow account. [Register here](https://www.signnow.com/developers)
-
-### ⚙️ **How to use it**
-
-1\. Install the [SignNow extension](https://github.com/apps/signnow).
-
-2\. Start your prompts with [@signnow](https://github.com/signnow) in the Copilot chat window. The first time you use the extension, you may need to authorize it.
-
-3\. Enter a prompt describing the integration scenario.   
-Example: @signnow Generate a Java code example for sending a document group to two signers.
-
-4\. Modify the generated code to match your app’s requirements—adjust parameters, headers, and workflows as needed.
-
-### **Troubleshooting**
-**The extension doesn’t provide code examples for the SignNow API**
-
-Make sure you're using `@signnow` in the Copilot chat and that the extension is installed and authorized.
-____
-
-# Explore SignNow developer tools
-## [**API reference**](https://docs.signnow.com/docs/signnow/reference)
-Get technical details about SignNow API requests, parameters, code examples, and possible errors. Send API calls directly from the documentation using the **Try it** console.
-## [**SDKs**](https://docs.signnow.com/docs/signnow/sdk)
-Use official SignNow API libraries and sample code to integrate advanced eSignature functionality into your software.
-## [**GitHub Copilot extension**](https://github.com/apps/signnow)
-Develop eSignature integrations directly in GitHub using AI-powered code suggestions. Copilot recommends API calls and code snippets that align with SignNow API guidelines.
-## [Postman collection](https://www.postman.com/signnow-api/signnow-public-collection/overview)
-Explore and test SignNow API requests in Postman. Use pre-configured collections to quickly start building and debugging your integrations.
-
-____
+Get AI-powered SignNow code suggestions in your IDE:
+[github.com/apps/signnow](https://github.com/apps/signnow) — start prompts with `@signnow`.
 
 ## License
 
-This repository is under the MIT license. You are free to use the code of this application as a skeleton for your application. For more information, see [LICENSE](./LICENSE).
+See [LICENSE](./LICENSE).
