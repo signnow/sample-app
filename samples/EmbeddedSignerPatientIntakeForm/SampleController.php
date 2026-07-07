@@ -20,6 +20,7 @@ use SignNow\Api\EmbeddedInvite\Request\DocumentInvitePost as DocumentInvitePostR
 use SignNow\Api\EmbeddedInvite\Response\DocumentInviteLinkPost as DocumentInviteLinkPostResponse;
 use SignNow\Api\EmbeddedInvite\Response\DocumentInvitePost as DocumentInvitePostReponse;
 use SignNow\ApiClient;
+use SignNow\Exception\SignNowApiException;
 use SignNow\Sdk;
 use SignNow\Api\Template\Response\CloneTemplatePost as CloneTemplatePostResponse;
 use SignNow\Api\Document\Response\DocumentDownloadGet as DocumentDownloadGetResponse;
@@ -49,7 +50,11 @@ class SampleController implements SampleControllerInterface
                 ]
             );
         } else {
-            $link = $this->createEmbeddedInviteAndReturnSigningLink(self::TEMPLATE_ID);
+            try {
+                $link = $this->createEmbeddedInviteAndReturnSigningLink(self::TEMPLATE_ID);
+            } catch (SignNowApiException $e) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
 
             return new RedirectResponse($link);
         }
@@ -65,12 +70,16 @@ class SampleController implements SampleControllerInterface
     {
         $request->get('document_id');
 
-        $sdk = new Sdk();
-        $apiClient = $sdk->build()
-            ->authenticate()
-            ->getApiClient();
+        try {
+            $sdk = new Sdk();
+            $apiClient = $sdk->build()
+                ->authenticate()
+                ->getApiClient();
 
-        $file = $this->downloadDocument($apiClient, $request->get('document_id'));
+            $file = $this->downloadDocument($apiClient, $request->get('document_id'));
+        } catch (SignNowApiException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
 
         return new Response($file, 200, [
             'Content-Type' => 'application/pdf',

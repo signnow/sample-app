@@ -1,5 +1,5 @@
 [
-    "EVDemoSendingAnd3EmbededSigners",
+    "EVDemoSendingAnd3EmbeddedSigners",
     "EmbeddedSenderWithFormCreditLoanAgreement",
     "EmbeddedSenderWithoutFormFile",
     "EmbeddedSignerConsentForm",
@@ -16,5 +16,7 @@
     "ISVWithFormAndOneClickSendMergeFields",
     "HROnboardingSystem",
     "UploadEmbeddedSender",
-    "UploadEmbeddedEditingAndInvite"
+    "UploadEmbeddedEditingAndInvite",
+    "PrefillAndEmbeddedSendingAgreement",
+    "PrefillAndOneClickSendingAgreement"
 ]
